@@ -1,0 +1,335 @@
+/* Overlay del modal */
+.eliminar-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 20px;
+  backdrop-filter: blur(5px);
+}
+
+/* Container principal */
+.eliminar-modal-container {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  color: white;
+}
+
+/* Header */
+.eliminar-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 25px 30px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.eliminar-modal-header h2 {
+  margin: 0;
+  font-size: 1.8rem;
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.eliminar-close-button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.eliminar-close-button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+  transform: rotate(90deg);
+}
+
+.eliminar-close-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Contenido */
+.eliminar-modal-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 25px 30px;
+}
+
+/* Información */
+.eliminar-info {
+  margin-bottom: 20px;
+}
+
+.eliminar-info p {
+  margin: 0 0 15px 0;
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+.eliminar-stats {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.stat-item {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 8px 15px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.stat-item strong {
+  color: #4CAF50;
+  font-size: 1.1rem;
+}
+
+/* Sección seleccionar todas */
+.select-all-section {
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.select-all-label {
+  font-weight: bold;
+  font-size: 1.1rem;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 12px 15px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.select-all-label:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Lista de skins */
+.skins-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.no-skins-message {
+  text-align: center;
+  padding: 40px 20px;
+  opacity: 0.7;
+}
+
+/* Item de skin */
+.skin-item {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 15px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.skin-item:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.skin-item.selected {
+  background: rgba(244, 67, 54, 0.2);
+  border-color: #f44336;
+  box-shadow: 0 0 15px rgba(244, 67, 54, 0.3);
+}
+
+/* Checkbox label */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  cursor: pointer;
+  width: 100%;
+}
+
+/* Checkbox input */
+.checkbox-input {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #f44336;
+  flex-shrink: 0;
+}
+
+.checkbox-input:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Info del item */
+.skin-item-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skin-item-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.skin-item-icon {
+  font-size: 1.5rem;
+}
+
+.skin-item-name {
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: white;
+}
+
+.skin-item-details {
+  display: flex;
+  gap: 15px;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.skin-item-price {
+  color: #4CAF50;
+  font-weight: bold;
+}
+
+.skin-item-category {
+  color: #FFD700;
+}
+
+/* Footer */
+.eliminar-modal-footer {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding: 25px 30px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.eliminar-cancel-button,
+.eliminar-confirm-button {
+  padding: 15px 30px;
+  border: none;
+  border-radius: 25px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 150px;
+}
+
+.eliminar-cancel-button {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.eliminar-cancel-button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.eliminar-confirm-button {
+  background: linear-gradient(45deg, #f44336, #d32f2f);
+  color: white;
+  border: 2px solid transparent;
+}
+
+.eliminar-confirm-button:hover:not(:disabled) {
+  background: linear-gradient(45deg, #d32f2f, #c62828);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.eliminar-cancel-button:disabled,
+.eliminar-confirm-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Scrollbar personalizada */
+.eliminar-modal-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.eliminar-modal-content::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.eliminar-modal-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+}
+
+.eliminar-modal-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .eliminar-modal-overlay {
+    padding: 10px;
+  }
+  
+  .eliminar-modal-container {
+    max-height: 95vh;
+  }
+  
+  .eliminar-modal-header,
+  .eliminar-modal-content,
+  .eliminar-modal-footer {
+    padding: 20px;
+  }
+  
+  .eliminar-modal-header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .eliminar-stats {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .eliminar-modal-footer {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .eliminar-cancel-button,
+  .eliminar-confirm-button {
+    width: 100%;
+    max-width: 250px;
+  }
+  
+  .skin-item-details {
+    flex-direction: column;
+    gap: 5px;
+  }
+}

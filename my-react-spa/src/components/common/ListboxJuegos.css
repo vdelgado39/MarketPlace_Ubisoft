@@ -1,0 +1,272 @@
+/* Container principal del listbox */
+.listbox-container {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 15px;
+  margin-bottom: 30px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+/* Header del listbox */
+.listbox-header {
+  padding: 20px 25px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  text-align: center;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.listbox-header h3 {
+  margin: 0 0 8px 0;
+  font-size: 1.5rem;
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.listbox-header p {
+  margin: 0;
+  font-size: 1rem;
+  opacity: 0.8;
+  color: white;
+}
+
+/* Contenido del listbox */
+.listbox-content {
+  padding: 20px;
+}
+
+/* Lista de juegos con scroll */
+.juegos-listbox {
+  max-height: 300px; /* Altura para mostrar ~3 juegos */
+  overflow-y: auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+/* Scrollbar personalizada */
+.juegos-listbox::-webkit-scrollbar {
+  width: 8px;
+}
+
+.juegos-listbox::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.juegos-listbox::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+}
+
+.juegos-listbox::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* Item individual de juego */
+.juego-item {
+  display: flex;
+  align-items: center;
+  padding: 15px 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  color: white;
+}
+
+.juego-item:last-child {
+  border-bottom: none;
+}
+
+.juego-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateX(5px);
+}
+
+.juego-item.selected {
+  background: rgba(255, 255, 255, 0.15);
+  border-left: 4px solid var(--juego-color, #4CAF50);
+  padding-left: 16px;
+}
+
+.juego-item.selected::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--juego-color, #4CAF50);
+  box-shadow: 0 0 10px var(--juego-color, #4CAF50);
+}
+
+/* Icono del juego */
+.juego-icon-container {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  margin-right: 15px;
+  transition: all 0.3s ease;
+}
+
+.juego-item:hover .juego-icon-container {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
+
+.juego-item.selected .juego-icon-container {
+  background: var(--juego-color, #4CAF50);
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+}
+
+.juego-icon {
+  font-size: 2rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Detalles del juego */
+.juego-details {
+  flex: 1;
+  min-width: 0; /* Para que el texto se corte correctamente */
+}
+
+.juego-nombre {
+  margin: 0 0 5px 0;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: white;
+}
+
+.juego-item.selected .juego-nombre {
+  color: var(--juego-color, #4CAF50);
+}
+
+.juego-descripcion {
+  margin: 0;
+  font-size: 0.9rem;
+  opacity: 0.8;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Indicador de selección */
+.selected-indicator {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--juego-color, #4CAF50);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  font-size: 1.1rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  margin-left: 10px;
+}
+
+/* Sección de selección actual */
+.seleccion-actual {
+  margin-top: 20px;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.juego-actual {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.icon-actual {
+  font-size: 2.5rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.info-actual {
+  flex: 1;
+}
+
+.label-actual {
+  margin: 0 0 5px 0;
+  font-size: 0.9rem;
+  opacity: 0.8;
+  color: white;
+}
+
+.nombre-actual {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #4CAF50;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .listbox-container {
+    margin-bottom: 20px;
+  }
+  
+  .listbox-header {
+    padding: 15px 20px;
+  }
+  
+  .listbox-header h3 {
+    font-size: 1.3rem;
+  }
+  
+  .listbox-content {
+    padding: 15px;
+  }
+  
+  .juegos-listbox {
+    max-height: 250px;
+  }
+  
+  .juego-item {
+    padding: 12px 15px;
+  }
+  
+  .juego-icon-container {
+    width: 50px;
+    height: 50px;
+    margin-right: 12px;
+  }
+  
+  .juego-icon {
+    font-size: 1.5rem;
+  }
+  
+  .juego-nombre {
+    font-size: 1rem;
+  }
+  
+  .juego-descripcion {
+    font-size: 0.85rem;
+  }
+  
+  .selected-indicator {
+    width: 25px;
+    height: 25px;
+    font-size: 1rem;
+  }
+  
+  .juego-actual {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+  
+  .icon-actual {
+    font-size: 2rem;
+  }
+}
