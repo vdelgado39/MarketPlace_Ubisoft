@@ -1,135 +1,98 @@
-/* Overlay del modal */
+/* ===== ESTILOS BASE DEL MODAL ===== */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   z-index: 1000;
-  padding: 20px;
-  backdrop-filter: blur(5px);
+  animation: fadeIn 0.3s ease;
 }
 
-/* Container principal del modal */
 .modal-container {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 20px;
-  width: 100%;
-  max-width: 800px;
-  max-height: 90vh;
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 85vh;
   overflow: hidden;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
   display: flex;
   flex-direction: column;
 }
 
-/* Header del modal */
+/* Modal más grande para acomodar comentarios */
+.modal-container-large {
+  max-width: 1200px;
+  width: 95%;
+}
+
+/* ===== HEADER DEL MODAL ===== */
 .modal-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 25px 30px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.05);
+  flex-shrink: 0;
 }
 
 .modal-header h2 {
   margin: 0;
-  font-size: 1.8rem;
-  color: white;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .modal-close-button {
-  background: none;
+  background: rgba(255, 255, 255, 0.2);
   border: none;
   color: white;
   font-size: 1.5rem;
-  cursor: pointer;
-  padding: 8px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
+  cursor: pointer;
   transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .modal-close-button:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.3);
   transform: rotate(90deg);
 }
 
-/* Contenido del modal */
+/* ===== CONTENIDO DEL MODAL ===== */
 .modal-content {
   flex: 1;
   overflow-y: auto;
-  padding: 30px;
+  padding: 20px;
 }
 
-/* Estados de carga */
-.modal-loading {
-  text-align: center;
-  padding: 60px 20px;
-  color: white;
-}
-
-.modal-loading .loading-spinner {
-  font-size: 3rem;
-  margin-bottom: 20px;
-  animation: spin 2s linear infinite;
-}
-
-.modal-loading p {
-  font-size: 1.1rem;
-  opacity: 0.8;
-}
-
-.modal-error {
-  text-align: center;
-  padding: 60px 20px;
-  color: white;
-}
-
-.modal-error p {
-  font-size: 1.2rem;
-  color: #ff6b6b;
-  margin-bottom: 20px;
-}
-
-.retry-button-modal {
-  background: linear-gradient(45deg, #667eea, #764ba2);
-  color: white;
-  border: none;
-  padding: 12px 25px;
-  border-radius: 20px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.retry-button-modal:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-}
-
-.modal-no-data {
-  text-align: center;
-  padding: 60px 20px;
-  color: white;
-}
-
-/* Contenido de detalles */
-.skin-detail-content {
+/* Layout de dos columnas */
+.modal-layout {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 40px;
-  color: white;
+  gap: 30px;
+  min-height: 500px;
 }
 
-/* Sección de imagen */
+/* Columna de detalles de skin */
+.skin-detail-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
 .skin-image-section {
   display: flex;
   justify-content: center;
@@ -137,262 +100,495 @@
 
 .skin-image-container {
   width: 100%;
-  max-width: 350px;
-  aspect-ratio: 1;
-  border-radius: 15px;
+  max-width: 400px;
+  aspect-ratio: 16/9;
+  border-radius: 12px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.1);
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .skin-image-large {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.3s ease;
-}
-
-.skin-image-large:hover {
-  transform: scale(1.05);
 }
 
 .skin-placeholder-large {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-  color: rgba(255, 255, 255, 0.6);
+  text-align: center;
+  color: #999;
 }
 
 .skin-placeholder-large span {
   font-size: 4rem;
+  display: block;
   margin-bottom: 10px;
 }
 
-.skin-placeholder-large p {
-  margin: 0;
-  font-size: 1.1rem;
-}
-
-/* Sección de información */
+/* Información de la skin */
 .skin-info-section {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 15px;
 }
 
 .skin-name {
-  font-size: 2.2rem;
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #333;
   margin: 0;
-  color: white;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-  padding-bottom: 15px;
 }
 
-/* Info del juego */
 .skin-game-info-modal {
   display: flex;
   align-items: center;
-  gap: 12px;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 12px 20px;
-  border-radius: 15px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  gap: 10px;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  width: fit-content;
 }
 
 .game-icon-modal {
-  font-size: 1.8rem;
+  font-size: 1.5rem;
 }
 
 .game-name-modal {
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: #4CAF50;
+  font-weight: 600;
+  color: #555;
 }
 
-/* Categoría */
 .skin-category-info {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 10px 15px;
-  border-radius: 12px;
 }
 
 .category-label {
-  font-size: 1rem;
-  opacity: 0.8;
+  font-weight: 600;
+  color: #666;
 }
 
 .category-value {
-  font-size: 1rem;
-  font-weight: bold;
-  color: #FFD700;
+  color: #333;
 }
 
-/* Descripción */
 .skin-description-section h4 {
-  margin: 0 0 10px 0;
-  font-size: 1.3rem;
-  color: #4CAF50;
+  color: #444;
+  margin-bottom: 10px;
 }
 
 .skin-description-text {
-  background: rgba(255, 255, 255, 0.1);
-  padding: 15px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #666;
   line-height: 1.6;
-  margin: 0;
-  font-size: 1.1rem;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
 }
 
-/* Precio */
 .skin-price-section {
-  background: linear-gradient(45deg, rgba(76, 175, 80, 0.2), rgba(69, 160, 73, 0.2));
-  border: 2px solid rgba(76, 175, 80, 0.5);
-  border-radius: 15px;
-  padding: 20px;
+  margin: 20px 0;
 }
 
 .price-container {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 15px;
+  padding: 15px;
+  background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+  border-radius: 12px;
+  width: fit-content;
 }
 
 .price-label {
-  font-size: 1.2rem;
-  font-weight: bold;
+  font-weight: 600;
+  color: white;
 }
 
 .price-value {
   font-size: 1.5rem;
   font-weight: bold;
-  color: #4CAF50;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  color: white;
 }
 
-/* Metadata */
 .skin-metadata {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
 }
 
 .metadata-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 15px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .metadata-label {
-  font-size: 0.9rem;
-  opacity: 0.8;
+  color: #666;
+  font-weight: 500;
 }
 
 .metadata-value {
-  font-weight: bold;
-  color: #FFD700;
+  color: #333;
+  font-weight: 600;
 }
 
-/* Footer del modal */
-.modal-footer {
+/* ===== SECCIÓN DE COMENTARIOS ===== */
+.comments-section {
   display: flex;
+  flex-direction: column;
+  border-left: 2px solid #f0f0f0;
+  padding-left: 20px;
+  height: 100%;
+  max-height: 600px;
+}
+
+.comments-header {
+  padding-bottom: 15px;
+  border-bottom: 2px solid #f0f0f0;
+  margin-bottom: 15px;
+}
+
+.comments-header h4 {
+  margin: 0;
+  color: #333;
+  font-size: 1.2rem;
+}
+
+/* Sección de nuevo comentario */
+.new-comment-section {
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.comment-user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.user-avatar {
+  font-size: 1.5rem;
+  width: 35px;
+  height: 35px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
   justify-content: center;
-  gap: 20px;
-  padding: 25px 30px;
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.05);
+}
+
+.user-name {
+  font-weight: 600;
+  color: #333;
+}
+
+.comment-input {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  resize: vertical;
+  min-height: 80px;
+  transition: border-color 0.3s ease;
+}
+
+.comment-input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.comment-input:disabled {
+  background: #f5f5f5;
+  cursor: not-allowed;
+}
+
+.send-comment-button {
+  margin-top: 10px;
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.send-comment-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.send-comment-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Prompt de login */
+.login-prompt {
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.login-prompt p {
+  margin: 0;
+  color: #666;
+}
+
+.login-prompt a {
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* Lista de comentarios */
+.comments-list {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.loading-comments,
+.no-comments {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999;
+}
+
+.loading-comments span,
+.no-comments span {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 10px;
+}
+
+/* Item de comentario */
+.comment-item {
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  margin-bottom: 15px;
+  animation: fadeIn 0.3s ease;
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.comment-author {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.comment-avatar {
+  font-size: 1.2rem;
+  width: 30px;
+  height: 30px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.comment-username {
+  font-weight: 600;
+  color: #333;
+}
+
+.comment-date {
+  color: #999;
+  font-size: 0.85rem;
+}
+
+.delete-comment-button {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.3s ease;
+}
+
+.delete-comment-button:hover {
+  opacity: 1;
+}
+
+.comment-content {
+  padding-left: 40px;
+}
+
+.comment-content p {
+  margin: 0;
+  color: #555;
+  line-height: 1.5;
+}
+
+/* ===== FOOTER DEL MODAL ===== */
+.modal-footer {
+  padding: 20px;
+  border-top: 2px solid #f0f0f0;
+  display: flex;
+  gap: 15px;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  background: white;
 }
 
 .cancel-button-modal,
 .buy-button-modal {
-  padding: 15px 30px;
-  border: none;
-  border-radius: 25px;
-  font-size: 1.1rem;
-  font-weight: bold;
+  padding: 12px 30px;
+  border-radius: 8px;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  min-width: 150px;
+  border: none;
+  font-size: 1rem;
 }
 
 .cancel-button-modal {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: #e0e0e0;
+  color: #666;
 }
 
 .cancel-button-modal:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
+  background: #d0d0d0;
 }
 
 .buy-button-modal {
-  background: linear-gradient(45deg, #4CAF50, #45a049);
+  background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
   color: white;
-  border: 2px solid transparent;
 }
 
 .buy-button-modal:hover {
-  background: linear-gradient(45deg, #45a049, #3d8b40);
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 5px 15px rgba(86, 171, 47, 0.4);
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .modal-overlay {
-    padding: 10px;
+/* ===== ESTADOS DE CARGA Y ERROR ===== */
+.modal-loading,
+.modal-error,
+.modal-no-data {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.loading-spinner {
+  font-size: 3rem;
+  animation: spin 2s linear infinite;
+}
+
+.retry-button-modal {
+  margin-top: 20px;
+  padding: 10px 30px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.retry-button-modal:hover {
+  transform: translateY(-2px);
+}
+
+/* ===== ANIMACIONES ===== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 968px) {
+  .modal-container-large {
+    max-width: 95%;
+    width: 95%;
   }
   
+  .modal-layout {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .comments-section {
+    border-left: none;
+    border-top: 2px solid #f0f0f0;
+    padding-left: 0;
+    padding-top: 20px;
+    max-height: 400px;
+  }
+}
+
+@media (max-width: 480px) {
   .modal-container {
-    max-height: 95vh;
-  }
-  
-  .modal-header {
-    padding: 20px;
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    border-radius: 0;
   }
   
   .modal-header h2 {
-    font-size: 1.5rem;
-  }
-  
-  .modal-content {
-    padding: 20px;
-  }
-  
-  .skin-detail-content {
-    grid-template-columns: 1fr;
-    gap: 30px;
-  }
-  
-  .skin-image-container {
-    max-width: 280px;
-    margin: 0 auto;
+    font-size: 1.2rem;
   }
   
   .skin-name {
-    font-size: 1.8rem;
+    font-size: 1.4rem;
+  }
+  
+  .price-value {
+    font-size: 1.2rem;
   }
   
   .modal-footer {
     flex-direction: column;
-    align-items: center;
-    padding: 20px;
   }
   
   .cancel-button-modal,
   .buy-button-modal {
     width: 100%;
-    max-width: 250px;
   }
 }

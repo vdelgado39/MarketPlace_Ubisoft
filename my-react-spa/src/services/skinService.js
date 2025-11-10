@@ -203,6 +203,62 @@ export const skinService = {
         data: []
       }
     }
+  },
+
+  // ===== OBTENER COMENTARIOS DE UNA SKIN =====
+  getComments: async (skinId) => {
+    try {
+      const response = await api.get(`/skins/${skinId}/comments`)
+      
+      return {
+        success: true,
+        data: response.data,
+        message: 'Comentarios cargados exitosamente'
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Error al cargar comentarios',
+        data: []
+      }
+    }
+  },
+
+  // ===== AGREGAR COMENTARIO A UNA SKIN =====
+  addComment: async (skinId, commentText) => {
+    try {
+      const response = await api.post(`/skins/${skinId}/comments`, {
+        text: commentText
+      })
+      
+      return {
+        success: true,
+        data: response.data,
+        message: 'Comentario agregado exitosamente'
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Error al agregar comentario'
+      }
+    }
+  },
+
+  // ===== ELIMINAR COMENTARIO =====
+  deleteComment: async (commentId) => {
+    try {
+      await api.delete(`/comments/${commentId}`)
+      
+      return {
+        success: true,
+        message: 'Comentario eliminado exitosamente'
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Error al eliminar comentario'
+      }
+    }
   }
 }
 
@@ -302,7 +358,7 @@ export const mockSkinService = {
       skin.creadorId === parseInt(userId)
     )
     
-    console.log('🔒 getMySkins - Usuario:', userId, 'Skins encontradas:', misSkinsReales.length)
+    console.log('🔑 getMySkins - Usuario:', userId, 'Skins encontradas:', misSkinsReales.length)
     
     return {
       success: true,
@@ -455,6 +511,107 @@ export const mockSkinService = {
       success: true,
       data: skin,
       message: 'Skin descargada exitosamente (simulado)'
+    }
+  },
+
+  // ===== OBTENER COMENTARIOS DE UNA SKIN =====
+  getComments: async (skinId) => {
+    await new Promise(resolve => setTimeout(resolve, 500))
+    
+    // Obtener comentarios del localStorage
+    const allComments = JSON.parse(localStorage.getItem('skin_comments') || '[]')
+    const skinComments = allComments.filter(c => c.skinId === parseInt(skinId))
+    
+    // Ordenar por fecha (más recientes primero)
+    skinComments.sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
+    
+    return {
+      success: true,
+      data: skinComments,
+      message: 'Comentarios cargados exitosamente'
+    }
+  },
+
+  // ===== AGREGAR COMENTARIO A UNA SKIN =====
+  addComment: async (skinId, commentText) => {
+    await new Promise(resolve => setTimeout(resolve, 800))
+    
+    const userId = localStorage.getItem('user_id')
+    if (!userId) {
+      return {
+        success: false,
+        error: 'Debes iniciar sesión para comentar'
+      }
+    }
+
+    // Obtener datos del usuario del localStorage
+    const allUsers = JSON.parse(localStorage.getItem('mock_users') || '[]')
+    const currentUser = allUsers.find(u => u.id === parseInt(userId))
+    
+    // Crear nuevo comentario
+    const newComment = {
+      id: Date.now(), // ID único basado en timestamp
+      skinId: parseInt(skinId),
+      userId: parseInt(userId),
+      username: currentUser?.username || 'Usuario',
+      avatar: currentUser?.avatar || '👤',
+      text: commentText,
+      fecha: new Date().toISOString(),
+      likes: 0
+    }
+    
+    // Obtener comentarios existentes
+    const allComments = JSON.parse(localStorage.getItem('skin_comments') || '[]')
+    allComments.push(newComment)
+    
+    // Guardar en localStorage
+    localStorage.setItem('skin_comments', JSON.stringify(allComments))
+    
+    return {
+      success: true,
+      data: newComment,
+      message: 'Comentario agregado exitosamente'
+    }
+  },
+
+  // ===== ELIMINAR COMENTARIO =====
+  deleteComment: async (commentId) => {
+    await new Promise(resolve => setTimeout(resolve, 500))
+    
+    const userId = localStorage.getItem('user_id')
+    if (!userId) {
+      return {
+        success: false,
+        error: 'Debes iniciar sesión'
+      }
+    }
+    
+    // Obtener comentarios
+    const allComments = JSON.parse(localStorage.getItem('skin_comments') || '[]')
+    const comment = allComments.find(c => c.id === commentId)
+    
+    if (!comment) {
+      return {
+        success: false,
+        error: 'Comentario no encontrado'
+      }
+    }
+    
+    // Verificar que el usuario sea el dueño del comentario
+    if (comment.userId !== parseInt(userId)) {
+      return {
+        success: false,
+        error: 'No tienes permiso para eliminar este comentario'
+      }
+    }
+    
+    // Filtrar comentario eliminado
+    const updatedComments = allComments.filter(c => c.id !== commentId)
+    localStorage.setItem('skin_comments', JSON.stringify(updatedComments))
+    
+    return {
+      success: true,
+      message: 'Comentario eliminado exitosamente'
     }
   }
 }

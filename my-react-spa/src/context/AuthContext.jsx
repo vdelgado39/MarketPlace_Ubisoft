@@ -33,13 +33,21 @@ export function AuthProvider({ children }) {
       if (result.success && result.data) {
         setUser(result.data)
         setIsAuthenticated(true)
+        // Guardar datos del usuario actual en localStorage para comentarios
+        localStorage.setItem('current_user', JSON.stringify({
+          id: result.data.id,
+          username: result.data.username,
+          avatar: result.data.avatar
+        }))
       } else {
         setUser(null)
         setIsAuthenticated(false)
+        localStorage.removeItem('current_user')
       }
     } catch (error) {
       setUser(null)
       setIsAuthenticated(false)
+      localStorage.removeItem('current_user')
     } finally {
       setLoading(false)
     }
@@ -60,6 +68,12 @@ export function AuthProvider({ children }) {
         if (loginResult.success) {
           setUser(loginResult.data)
           setIsAuthenticated(true)
+          // Guardar datos del usuario
+          localStorage.setItem('current_user', JSON.stringify({
+            id: loginResult.data.id,
+            username: loginResult.data.username,
+            avatar: loginResult.data.avatar
+          }))
         }
       }
       
@@ -80,6 +94,12 @@ export function AuthProvider({ children }) {
       if (result.success) {
         setUser(result.data)
         setIsAuthenticated(true)
+        // Guardar datos del usuario
+        localStorage.setItem('current_user', JSON.stringify({
+          id: result.data.id,
+          username: result.data.username,
+          avatar: result.data.avatar
+        }))
       }
       
       return result
@@ -97,6 +117,7 @@ export function AuthProvider({ children }) {
       const result = await authService.logout()
       setUser(null)
       setIsAuthenticated(false)
+      localStorage.removeItem('current_user')
       return result
     } catch (error) {
       return {
@@ -120,6 +141,12 @@ export function AuthProvider({ children }) {
       
       if (result.success) {
         setUser(result.data)
+        // Actualizar datos del usuario en localStorage
+        localStorage.setItem('current_user', JSON.stringify({
+          id: result.data.id,
+          username: result.data.username,
+          avatar: result.data.avatar
+        }))
       }
       
       return result
