@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useApi } from '../../hooks/useApi'
 import { useAuth } from '../../context/AuthContext'
 import './SkinModal.css'
 
 function SkinModal({ skinId, onClose, onComprar }) {
   const { user, isAuthenticated } = useAuth() // Obtener usuario actual
+  const navigate = useNavigate()
   const [skinDetalle, setSkinDetalle] = useState(null)
   const [comentarios, setComentarios] = useState([])
   const [nuevoComentario, setNuevoComentario] = useState('')
@@ -113,6 +115,15 @@ function SkinModal({ skinId, onClose, onComprar }) {
 
   // Manejar compra
   const handleComprar = async () => {
+    // Si no está autenticado, redirigir al login
+    if (!isAuthenticated) {
+      if (window.confirm('🔒 Debes iniciar sesión para comprar esta skin. ¿Deseas ir al login?')) {
+        handleClose()
+        navigate('/login')
+      }
+      return
+    }
+
     if (skinDetalle && onComprar) {
       try {
         const { default: skinService } = await import('../../services/skinService')
@@ -128,6 +139,18 @@ function SkinModal({ skinId, onClose, onComprar }) {
         alert('❌ Error al procesar la compra')
       }
     }
+  }
+
+  // Manejar redirección a login
+  const handleIrALogin = () => {
+    handleClose()
+    navigate('/login')
+  }
+
+  // Manejar redirección a registro
+  const handleIrARegistro = () => {
+    handleClose()
+    navigate('/register')
   }
 
   // Cerrar modal al hacer clic en el overlay
@@ -268,6 +291,27 @@ function SkinModal({ skinId, onClose, onComprar }) {
                     </div>
                   </div>
 
+                  {/* Banner para usuarios no autenticados */}
+                  {!isAuthenticated && (
+                    <div className="modal-auth-banner">
+                      <p>🔒 <strong>Inicia sesión para comprar esta skin</strong></p>
+                      <div className="modal-auth-buttons">
+                        <button 
+                          className="modal-auth-button login"
+                          onClick={handleIrALogin}
+                        >
+                          🔑 Iniciar Sesión
+                        </button>
+                        <button 
+                          className="modal-auth-button register"
+                          onClick={handleIrARegistro}
+                        >
+                          📝 Registrarse
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Información adicional */}
                   <div className="skin-metadata">
                     {skinDetalle.fechaCreacion && (
@@ -329,7 +373,23 @@ function SkinModal({ skinId, onClose, onComprar }) {
                   </div>
                 ) : (
                   <div className="login-prompt">
-                    <p>🔒 <a href="/login" style={{color: '#667eea'}}>Inicia sesión</a> para dejar un comentario</p>
+                    <p>
+                      🔒 
+                      <button 
+                        onClick={handleIrALogin}
+                        className="inline-auth-link"
+                      >
+                        Inicia sesión
+                      </button>
+                      {' '}o{' '}
+                      <button 
+                        onClick={handleIrARegistro}
+                        className="inline-auth-link"
+                      >
+                        regístrate
+                      </button>
+                      {' '}para dejar un comentario
+                    </p>
                   </div>
                 )}
 
@@ -391,10 +451,14 @@ function SkinModal({ skinId, onClose, onComprar }) {
               ❌ Cerrar
             </button>
             <button 
-              className="buy-button-modal"
+              className={`buy-button-modal ${!isAuthenticated ? 'disabled' : ''}`}
               onClick={handleComprar}
+              disabled={!isAuthenticated}
+              title={!isAuthenticated ? 'Inicia sesión para comprar' : `Comprar por $${skinDetalle.precio}`}
             >
-              💳 Comprar por ${skinDetalle.precio}
+              {isAuthenticated 
+                ? `💳 Comprar por $${skinDetalle.precio}` 
+                : '🔒 Requiere Iniciar Sesión'}
             </button>
           </div>
         )}

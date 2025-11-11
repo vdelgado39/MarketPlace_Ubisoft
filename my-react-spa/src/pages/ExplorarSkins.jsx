@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useSkins } from '../hooks/useApi'
 import { useAuth } from '../context/AuthContext'
+import { useNavigate } from 'react-router-dom'
 import SkinModal from '../components/common/SkinModal'
 import './Pages.css'
 
 function ExplorarSkins() {
-  const { checkAuth, user } = useAuth() // Obtener usuario actual
+  const { isAuthenticated, user } = useAuth() // Verificar si está autenticado
+  const navigate = useNavigate()
   
   // Estados para filtros
   const [filtros, setFiltros] = useState({
@@ -21,17 +23,20 @@ function ExplorarSkins() {
   // Hook personalizado para cargar skins con filtros
   const { skins, loading, error, cargarSkins } = useSkins(filtros, true)
 
-  // Filtrar skins para excluir las del usuario actual
+  // Filtrar skins para excluir las del usuario actual (solo si está autenticado)
   const skinsDeOtrosUsuarios = skins.filter(skin => {
-    // Obtener ID del usuario actual
+    // Si no está autenticado, mostrar todas las skins
+    if (!isAuthenticated) {
+      return true
+    }
+    
+    // Si está autenticado, excluir sus propias skins
     const userId = user?.id || localStorage.getItem('user_id')
     
-    // Excluir si la skin pertenece al usuario actual
     if (userId && skin.creadorId) {
       return skin.creadorId !== parseInt(userId)
     }
     
-    // Si no hay creadorId o no hay usuario, mostrar la skin
     return true
   })
 
@@ -137,8 +142,16 @@ function ExplorarSkins() {
     setSkinSeleccionada(null)
   }
 
-  // Simular compra de skin desde el modal
+  // Manejar intento de compra (requiere autenticación)
   const comprarSkin = async (skin) => {
+    // Si no está autenticado, redirigir al login
+    if (!isAuthenticated) {
+      alert('🔒 Debes iniciar sesión para comprar skins')
+      cerrarModal()
+      navigate('/login')
+      return
+    }
+
     try {
       // Aquí iría la llamada a la API de compra
       alert(`🎉 ¡Has comprado "${skin.nombre}" por $${skin.precio}!`)
@@ -173,7 +186,35 @@ function ExplorarSkins() {
     <div className="page">
       <div className="page-content">
         <h1>🔍 Explorar Skins</h1>
-        <p>Descubre skins de otros creadores organizadas por juego y categoría.</p>
+        <p>
+          {isAuthenticated 
+            ? 'Descubre skins de otros creadores organizadas por juego y categoría.'
+            : '¡Bienvenido! Explora las skins disponibles. Inicia sesión para comprarlas.'
+          }
+        </p>
+        
+        {/* Banner informativo para usuarios no autenticados */}
+        {!isAuthenticated && (
+          <div className="info-banner">
+            <p>
+              ℹ️ Estás navegando como invitado. 
+              <button 
+                className="inline-link-button"
+                onClick={() => navigate('/login')}
+              >
+                Inicia sesión
+              </button>
+              {' '}o{' '}
+              <button 
+                className="inline-link-button"
+                onClick={() => navigate('/register')}
+              >
+                regístrate
+              </button>
+              {' '}para comprar skins.
+            </p>
+          </div>
+        )}
         
         {/* Filtros */}
         <div className="filters-section">
@@ -279,8 +320,13 @@ function ExplorarSkins() {
           </div>
         ) : Object.keys(skinsAgrupadas).length === 0 ? (
           <div className="no-results-section">
-            <h3>🚫 No se encontraron skins de otros usuarios</h3>
-            <p>Prueba cambiando los filtros o espera a que otros creadores suban sus skins.</p>
+            <h3>🚫 No se encontraron skins {isAuthenticated ? 'de otros usuarios' : 'disponibles'}</h3>
+            <p>
+              {isAuthenticated 
+                ? 'Prueba cambiando los filtros o espera a que otros creadores suban sus skins.'
+                : 'Prueba cambiando los filtros o regresa más tarde.'
+              }
+            </p>
             <button 
               className="clear-filters-button"
               onClick={limpiarFiltros}
@@ -352,7 +398,7 @@ function ExplorarSkins() {
         )}
         
         <div className="placeholder-section">
-          <p>🎯 {Object.keys(skinsAgrupadas).length > 0 ? 'Haz clic en cualquier skin para ver detalles completos' : 'Aquí aparecerán las skins de otros creadores'}</p>
+          <p>🎯 {Object.keys(skinsAgrupadas).length > 0 ? 'Haz clic en cualquier skin para ver detalles completos' : 'Aquí aparecerán las skins disponibles'}</p>
         </div>
 
         {/* Modal de detalles de skin */}
@@ -361,6 +407,7 @@ function ExplorarSkins() {
             skinId={skinSeleccionada.id}
             onClose={cerrarModal}
             onComprar={comprarSkin}
+            isAuthenticated={isAuthenticated}
           />
         )}
       </div>

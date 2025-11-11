@@ -26,6 +26,14 @@ function Navigation() {
           🏠 Inicio
         </Link>
 
+
+        <Link 
+          to="/explorar-skins"
+          className={`nav-button ${location.pathname === '/explorar-skins' ? 'active' : ''}`}
+        >
+          🔍 Explorar Skins
+        </Link>
+
         {isAuthenticated ? (
           <>
             <Link 
@@ -35,12 +43,7 @@ function Navigation() {
               🛠️ Gestionar Skins
             </Link>
             
-            <Link 
-              to="/explorar-skins"
-              className={`nav-button ${location.pathname === '/explorar-skins' ? 'active' : ''}`}
-            >
-              🔍 Explorar Skins
-            </Link>
+
 
             <Link 
               to="/profile"
@@ -83,6 +86,7 @@ function AppContent() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/explorar-skins" element={<ExplorarSkins />} /> {/* SIN ProtectedRoute */}
 
           {/* Rutas protegidas (requieren autenticación) */}
           <Route 
@@ -93,14 +97,7 @@ function AppContent() {
               </ProtectedRoute>
             } 
           />
-          <Route 
-            path="/explorar-skins" 
-            element={
-              <ProtectedRoute>
-                <ExplorarSkins />
-              </ProtectedRoute>
-            } 
-          />
+
           <Route 
             path="/profile" 
             element={

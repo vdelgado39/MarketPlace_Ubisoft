@@ -444,4 +444,148 @@
   .buy-button-modal {
     width: 100%;
   }
+
+  /* Banner de autenticación en el modal */
+  .modal-auth-banner {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin: 1.5rem 0;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    animation: fadeInScale 0.5s ease-out;
+  }
+
+  .modal-auth-banner p {
+    margin: 0 0 1rem 0;
+    font-size: 1rem;
+  }
+
+  .modal-auth-banner strong {
+    font-weight: 700;
+  }
+
+  .modal-auth-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .modal-auth-button {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 140px;
+    color: white;
+  }
+
+  .modal-auth-button.login {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+  }
+
+  .modal-auth-button.login:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(52, 152, 219, 0.4);
+  }
+
+  .modal-auth-button.register {
+    background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+    box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
+  }
+
+  .modal-auth-button.register:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(39, 174, 96, 0.4);
+  }
+
+  /* Botón de compra deshabilitado */
+  .buy-button-modal.disabled {
+    background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+
+  .buy-button-modal.disabled:hover {
+    transform: none;
+    box-shadow: 0 4px 12px rgba(149, 165, 166, 0.3);
+  }
+
+  /* Login prompt mejorado */
+  .login-prompt {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 12px;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    border: 2px dashed #dee2e6;
+  }
+
+  .login-prompt p {
+    margin: 0;
+    color: #495057;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+
+  .inline-auth-link {
+    background: none;
+    border: none;
+    color: #667eea;
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
+    font-size: inherit;
+    transition: all 0.3s ease;
+  }
+
+  .inline-auth-link:hover {
+    color: #764ba2;
+    transform: translateY(-1px);
+  }
+
+  /* Animación para el banner */
+  @keyframes fadeInScale {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  /* Responsive para el banner de auth */
+  @media (max-width: 768px) {
+    .modal-auth-banner {
+      padding: 1rem;
+    }
+
+    .modal-auth-buttons {
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .modal-auth-button {
+      width: 100%;
+    }
+
+    .login-prompt p {
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+  }
+
 }
