@@ -1,3 +1,5 @@
+// src/pages/Login.jsx
+
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
@@ -23,7 +25,6 @@ function Login() {
       [name]: value
     }))
 
-    // Limpiar error del campo
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,

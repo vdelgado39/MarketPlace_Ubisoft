@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 // URL base de la API - cambiar por tu servidor real
-const API_BASE_URL = 'http://localhost:3001/api'
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:4000/api'
 
 // Crear instancia de axios
 const api = axios.create({

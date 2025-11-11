@@ -1,5 +1,7 @@
+// context/AuthContext,jsx
+
 import { createContext, useState, useEffect, useContext } from 'react'
-import authService from '../services/authService'
+import { authService } from '../services/authService'
 
 // Crear el contexto
 export const AuthContext = createContext()
@@ -24,29 +26,33 @@ export function AuthProvider({ children }) {
     checkAuth()
   }, [])
 
-  // Verificar autenticación
+  // Verificar autenticación con backend
   const checkAuth = async () => {
+    setLoading(true)
     try {
-      setLoading(true)
-      const result = await authService.getCurrentUser()
-      
-      if (result.success && result.data) {
-        setUser(result.data)
-        setIsAuthenticated(true)
-        // Guardar datos del usuario actual en localStorage para comentarios
-        localStorage.setItem('current_user', JSON.stringify({
-          id: result.data.id,
-          username: result.data.username,
-          avatar: result.data.avatar
-        }))
-      } else {
-        setUser(null)
-        setIsAuthenticated(false)
-        localStorage.removeItem('current_user')
-      }
+      // Obtener token del localStorage
+      const token = localStorage.getItem('auth_token')
+      if (!token) throw new Error('No token')
+
+      // Llamar al endpoint protegido para validar token y obtener usuario
+      const data = await authService.getUserProfile()
+
+      // Si todo OK, seteamos usuario y autenticación
+      setUser(data)
+      setIsAuthenticated(true)
+
+      // Guardar usuario simple para otras partes
+      localStorage.setItem('current_user', JSON.stringify({
+        id: data.id,
+        username: data.username,
+        avatar: data.avatar
+      }))
     } catch (error) {
+      // Si falla (token inválido o expirado), limpiamos todo
       setUser(null)
       setIsAuthenticated(false)
+      localStorage.removeItem('auth_token')
+      localStorage.removeItem('user_data')
       localStorage.removeItem('current_user')
     } finally {
       setLoading(false)
@@ -57,18 +63,15 @@ export function AuthProvider({ children }) {
   const register = async (userData) => {
     try {
       const result = await authService.register(userData)
-      
       if (result.success) {
-        // Después de registrar, hacer login automáticamente
+        // Login automático luego de registrar
         const loginResult = await authService.login({
           identifier: userData.email,
           password: userData.password
         })
-        
         if (loginResult.success) {
           setUser(loginResult.data)
           setIsAuthenticated(true)
-          // Guardar datos del usuario
           localStorage.setItem('current_user', JSON.stringify({
             id: loginResult.data.id,
             username: loginResult.data.username,
@@ -76,89 +79,58 @@ export function AuthProvider({ children }) {
           }))
         }
       }
-      
       return result
-    } catch (error) {
-      return {
-        success: false,
-        error: 'Error al registrar usuario'
-      }
+    } catch {
+      return { success: false, error: 'Error al registrar usuario' }
     }
   }
 
-  // Iniciar sesión
+  // Login usuario
   const login = async (credentials) => {
     try {
       const result = await authService.login(credentials)
-      
       if (result.success) {
         setUser(result.data)
         setIsAuthenticated(true)
-        // Guardar datos del usuario
         localStorage.setItem('current_user', JSON.stringify({
           id: result.data.id,
           username: result.data.username,
           avatar: result.data.avatar
         }))
       }
-      
       return result
-    } catch (error) {
-      return {
-        success: false,
-        error: 'Error al iniciar sesión'
-      }
+    } catch {
+      return { success: false, error: 'Error al iniciar sesión' }
     }
   }
 
-  // Cerrar sesión
-  const logout = async () => {
-    try {
-      const result = await authService.logout()
-      setUser(null)
-      setIsAuthenticated(false)
-      localStorage.removeItem('current_user')
-      return result
-    } catch (error) {
-      return {
-        success: false,
-        error: 'Error al cerrar sesión'
-      }
-    }
+  // Logout usuario
+  const logout = () => {
+    authService.logout()
+    setUser(null)
+    setIsAuthenticated(false)
+    localStorage.removeItem('current_user')
   }
 
   // Actualizar perfil
   const updateProfile = async (profileData) => {
     try {
-      if (!user) {
-        return {
-          success: false,
-          error: 'No hay usuario autenticado'
-        }
-      }
-
-      const result = await authService.updateProfile(user.id, profileData)
-      
+      if (!user) return { success: false, error: 'No hay usuario autenticado' }
+      const result = await authService.updateUserProfile(profileData)
       if (result.success) {
         setUser(result.data)
-        // Actualizar datos del usuario en localStorage
         localStorage.setItem('current_user', JSON.stringify({
           id: result.data.id,
           username: result.data.username,
           avatar: result.data.avatar
         }))
       }
-      
       return result
-    } catch (error) {
-      return {
-        success: false,
-        error: 'Error al actualizar perfil'
-      }
+    } catch {
+      return { success: false, error: 'Error al actualizar perfil' }
     }
   }
 
-  // Valor del contexto
   const value = {
     user,
     loading,

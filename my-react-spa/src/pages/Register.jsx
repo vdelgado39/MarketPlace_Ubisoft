@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import './Auth.css'
+import { authService } from '../services/authService'
 
 function Register() {
   const navigate = useNavigate()
@@ -97,16 +98,16 @@ function Register() {
     setIsSubmitting(true)
 
     try {
-      const result = await register(formData)
+      const result = await authService.register(formData)
 
       if (result.success) {
         alert(`¡Bienvenido ${formData.username}! Tu cuenta ha sido creada exitosamente.`)
-        navigate('/')
+        navigate('/login') // o '/' si quieres que se loguee directamente
       } else {
         setErrors({ submit: result.error })
       }
     } catch (error) {
-      setErrors({ submit: 'Error al registrar usuario' })
+      setErrors({ submit: error.message || 'Error al registrar usuario' })
     } finally {
       setIsSubmitting(false)
     }
