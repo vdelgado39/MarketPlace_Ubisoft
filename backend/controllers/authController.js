@@ -27,7 +27,8 @@ export const register = async (req, res) => {
     })
 
     await user.save()
-
+    console.log('Usuario guardado con ID:', user._id)
+    
     return res.status(201).json({
       success: true,
       data: {
