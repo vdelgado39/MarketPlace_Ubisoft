@@ -112,19 +112,56 @@ export const getProfile = async (req, res) => {
 // Actualizar perfil (ruta protegida)
 export const updateProfile = async (req, res) => {
   try {
+    const { nombre, avatar, username, email, passwordActual, nuevoPassword } = req.body
+
     const updates = {}
-    if (req.body.nombre) updates.nombre = req.body.nombre
-    if (req.body.avatar) updates.avatar = req.body.avatar
+    if (nombre) updates.nombre = nombre
+    if (avatar) updates.avatar = avatar
+    if (username) updates.username = username
+    if (email) updates.email = email
 
-    const user = await User.findByIdAndUpdate(req.user.userId, updates, { new: true }).select('-password')
+    console.log("Actualizando perfil del usuario:", req.user.userId)
+    console.log("Datos recibidos:", updates)
 
-    if (!user) {
+    // Si el usuario quiere cambiar la contraseña
+    if (passwordActual && nuevoPassword) {
+      const user = await User.findById(req.user.userId)
+      if (!user) {
+        return res.status(404).json({ success: false, error: 'Usuario no encontrado' })
+      }
+
+      // Verificar contraseña actual
+      const isMatch = await bcrypt.compare(passwordActual, user.password)
+      if (!isMatch) {
+        return res.status(400).json({ success: false, error: 'La contraseña actual es incorrecta' })
+      }
+
+      // Hashear nueva contraseña
+      const salt = await bcrypt.genSalt(10)
+      const hashedPassword = await bcrypt.hash(nuevoPassword, salt)
+      updates.password = hashedPassword
+    }
+
+    // Actualizar usuario
+    const userUpdated = await User.findByIdAndUpdate(req.user.userId, updates, {
+      new: true,
+      runValidators: true
+    }).select('-password')
+
+    if (!userUpdated) {
       return res.status(404).json({ success: false, error: 'Usuario no encontrado' })
     }
 
-    return res.status(200).json({ success: true, data: user, message: 'Perfil actualizado exitosamente' })
+    return res.status(200).json({
+      success: true,
+      data: userUpdated,
+      message: 'Perfil actualizado exitosamente'
+    })
   } catch (error) {
-    console.error(error)
-    return res.status(500).json({ success: false, error: 'Error en el servidor' })
+    console.error("Error al actualizar perfil:", error)
+    return res.status(500).json({
+      success: false,
+      error: 'Error en el servidor al actualizar perfil'
+    })
   }
 }

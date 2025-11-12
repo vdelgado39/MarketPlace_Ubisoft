@@ -57,9 +57,9 @@ export const authService = {
   },
 
   // Ejemplo: obtener perfil de usuario (petición protegida)
-  getUserProfile: () => httpClient('/user/profile'),
+  getUserProfile: () => httpClient('/auth/me'),
 
   // Actualizar perfil usuario (petición protegida)
   updateUserProfile: (data) =>
-    httpClient('/user/profile', { method: 'PUT', body: JSON.stringify(data) }),
+    httpClient('/auth/profile', { method: 'PUT', body: JSON.stringify(data) }),
 }

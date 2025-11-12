@@ -238,6 +238,32 @@ function Profile() {
               />
             </div>
 
+            {/* Username */}
+            <div className="profile-form-group">
+              <label>Nombre de Usuario</label>
+              <input
+                type="text"
+                name="username"
+                value={formData.username}
+                onChange={handleInputChange}
+                placeholder="Tu nombre de usuario"
+                disabled={isUpdating}
+              />
+            </div>
+
+            {/* Email */}
+            <div className="profile-form-group">
+              <label>Correo Electrónico</label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                placeholder="tu@email.com"
+                disabled={isUpdating}
+              />
+            </div>
+
             {/* Selector de Avatar */}
             <div className="profile-form-group">
               <label>Selecciona tu Avatar</label>
@@ -255,6 +281,32 @@ function Profile() {
                 ))}
               </div>
             </div>
+
+            {/* Cambiar Contraseña */}
+            <div className="profile-form-group">
+              <label>Contraseña Actual</label>
+              <input
+                type="password"
+                name="passwordActual"
+                value={formData.passwordActual || ''}
+                onChange={handleInputChange}
+                placeholder="Introduce tu contraseña actual"
+                disabled={isUpdating}
+              />
+            </div>
+
+            <div className="profile-form-group">
+              <label>Nueva Contraseña</label>
+              <input
+                type="password"
+                name="nuevoPassword"
+                value={formData.nuevoPassword || ''}
+                onChange={handleInputChange}
+                placeholder="Introduce tu nueva contraseña"
+                disabled={isUpdating}
+              />
+            </div>
+
           </div>
         )}
 
