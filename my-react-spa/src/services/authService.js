@@ -62,4 +62,11 @@ export const authService = {
   // Actualizar perfil usuario (petición protegida)
   updateUserProfile: (data) =>
     httpClient('/auth/profile', { method: 'PUT', body: JSON.stringify(data) }),
+
+  // Eliminar perfil usuario (petición protegida)
+  deleteUserProfile: (password) =>
+    httpClient('/auth/profile', { 
+      method: 'DELETE', 
+      body: JSON.stringify({ password }) 
+    }),
 }

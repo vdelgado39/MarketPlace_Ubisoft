@@ -5,7 +5,7 @@ import './Profile.css'
 
 function Profile() {
   const navigate = useNavigate()
-  const { user, logout, updateProfile, checkAuth } = useAuth()
+  const { user, logout, updateProfile, deleteProfile, checkAuth } = useAuth()
 
   const [editMode, setEditMode] = useState(false)
   const [formData, setFormData] = useState({
@@ -17,6 +17,11 @@ function Profile() {
   const [skinsCompradas, setSkinsCompradas] = useState([])
   const [skinsDescargadas, setSkinsDescargadas] = useState([])
   const [loadingSkins, setLoadingSkins] = useState(false)
+
+  // Modal de confirmación de eliminación
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deletePassword, setDeletePassword] = useState('')
+  const [isDeleting, setIsDeleting] = useState(false)
 
   // Cargar datos del usuario
   useEffect(() => {
@@ -127,6 +132,60 @@ function Profile() {
     setEditMode(false)
   }
 
+  // Abrir modal de eliminación
+  const handleOpenDeleteModal = () => {
+    setShowDeleteModal(true)
+    setDeletePassword('')
+  }
+
+  // Cerrar modal de eliminación
+  const handleCloseDeleteModal = () => {
+    setShowDeleteModal(false)
+    setDeletePassword('')
+  }
+
+  // Eliminar perfil
+  const handleDeleteProfile = async () => {
+    if (!deletePassword) {
+      alert('⚠️ Por favor ingresa tu contraseña para confirmar')
+      return
+    }
+
+    const confirmacion = window.confirm(
+      '⚠️ ADVERTENCIA: Esta acción es irreversible.\n\n' +
+      '¿Estás completamente seguro de que quieres eliminar tu cuenta?\n\n' +
+      'Se perderán:\n' +
+      '- Tu perfil y estadísticas\n' +
+      '- Todas tus skins subidas\n' +
+      '- Tus skins compradas\n' +
+      '- Tu saldo en la wallet\n\n' +
+      '¿Continuar con la eliminación?'
+    )
+
+    if (!confirmacion) return
+
+    setIsDeleting(true)
+
+    try {
+      const result = await deleteProfile(deletePassword)
+
+      if (result.success) {
+        alert('✅ Cuenta eliminada exitosamente. Serás redirigido al inicio.')
+        handleCloseDeleteModal()
+        
+        // Logout y redireccionar
+        await logout()
+        navigate('/login')
+      } else {
+        alert(`❌ Error: ${result.error}`)
+      }
+    } catch (error) {
+      alert(`❌ Error al eliminar cuenta: ${error.message}`)
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
   // Cerrar sesión
   const handleLogout = async () => {
     const confirmacion = window.confirm('¿Estás seguro de que quieres cerrar sesión?')
@@ -194,6 +253,9 @@ function Profile() {
               <>
                 <button className="edit-profile-button" onClick={() => setEditMode(true)}>
                   ✏️ Editar Perfil
+                </button>
+                <button className="delete-profile-button" onClick={handleOpenDeleteModal}>
+                  🗑️ Eliminar Perfil
                 </button>
                 <button className="logout-button" onClick={handleLogout}>
                   🚪 Cerrar Sesión
@@ -452,6 +514,60 @@ function Profile() {
           )}
         </div>
       </div>
+
+      {/* Modal de Confirmación de Eliminación */}
+      {showDeleteModal && (
+        <div className="modal-overlay" onClick={handleCloseDeleteModal}>
+          <div className="modal-content delete-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>⚠️ Eliminar Cuenta</h2>
+              <button className="modal-close" onClick={handleCloseDeleteModal}>✕</button>
+            </div>
+            
+            <div className="modal-body">
+              <div className="warning-box">
+                <p><strong>⚠️ ADVERTENCIA: Esta acción es irreversible</strong></p>
+                <p>Si eliminas tu cuenta, perderás permanentemente:</p>
+                <ul>
+                  <li>🗂️ Tu perfil y estadísticas</li>
+                  <li>📤 Todas tus skins subidas ({user.skinsSubidas?.length || 0})</li>
+                  <li>🛒 Tus skins compradas ({user.skinsCompradas?.length || 0})</li>
+                  <li>💰 Tu saldo actual: ${user.wallet?.toFixed(2) || '0.00'}</li>
+                </ul>
+              </div>
+
+              <div className="profile-form-group">
+                <label>Confirma tu contraseña para continuar:</label>
+                <input
+                  type="password"
+                  value={deletePassword}
+                  onChange={(e) => setDeletePassword(e.target.value)}
+                  placeholder="Ingresa tu contraseña"
+                  disabled={isDeleting}
+                  className="delete-password-input"
+                />
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button 
+                className="modal-button cancel-button" 
+                onClick={handleCloseDeleteModal}
+                disabled={isDeleting}
+              >
+                Cancelar
+              </button>
+              <button 
+                className="modal-button delete-button" 
+                onClick={handleDeleteProfile}
+                disabled={isDeleting || !deletePassword}
+              >
+                {isDeleting ? '⏳ Eliminando...' : '🗑️ Eliminar Cuenta'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

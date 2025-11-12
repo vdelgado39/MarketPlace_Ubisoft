@@ -1,7 +1,7 @@
 // backend/routes/authRoutes.js
 
 import express from 'express'
-import { register, login, getProfile, updateProfile } from '../controllers/authController.js'
+import { register, login, getProfile, updateProfile, deleteProfile } from '../controllers/authController.js'
 import { protect } from '../middleware/authMiddleware.js'
 
 const router = express.Router()
@@ -13,5 +13,6 @@ router.post('/login', login)
 // Rutas protegidas
 router.get('/me', protect, getProfile)
 router.put('/profile', protect, updateProfile)
+router.delete('/profile', protect, deleteProfile)
 
 export default router

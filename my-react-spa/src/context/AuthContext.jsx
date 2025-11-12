@@ -1,4 +1,4 @@
-// context/AuthContext,jsx
+// context/AuthContext.jsx
 
 import { createContext, useState, useEffect, useContext } from 'react'
 import { authService } from '../services/authService'
@@ -131,6 +131,25 @@ export function AuthProvider({ children }) {
     }
   }
 
+  const deleteProfile = async (password) => {
+    try {
+      const result = await authService.deleteUserProfile(password)
+      
+      if (result.success) {
+        // Limpiar estado y storage
+        setUser(null)
+        authService.logout()
+        
+        return { success: true }
+      }
+      
+      return { success: false, error: result.error }
+    } catch (error) {
+      console.error('Error al eliminar perfil:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
   const value = {
     user,
     loading,
@@ -139,7 +158,8 @@ export function AuthProvider({ children }) {
     login,
     logout,
     updateProfile,
-    checkAuth
+    checkAuth,
+    deleteProfile
   }
 
   return (

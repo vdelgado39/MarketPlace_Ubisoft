@@ -1,3 +1,5 @@
+// authController.js
+
 import User from '../models/User.js'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
@@ -162,6 +164,43 @@ export const updateProfile = async (req, res) => {
     return res.status(500).json({
       success: false,
       error: 'Error en el servidor al actualizar perfil'
+    })
+  }
+}
+
+// Eliminar perfil (ruta protegida)
+export const deleteProfile = async (req, res) => {
+  try {
+    const { password } = req.body
+
+    console.log("Eliminando perfil del usuario:", req.user.userId)
+
+    // Buscar usuario
+    const user = await User.findById(req.user.userId)
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'Usuario no encontrado' })
+    }
+
+    // Verificar contraseña para confirmar eliminación
+    const isMatch = await bcrypt.compare(password, user.password)
+    if (!isMatch) {
+      return res.status(400).json({ success: false, error: 'Contraseña incorrecta' })
+    }
+
+    // Eliminar usuario
+    await User.findByIdAndDelete(req.user.userId)
+
+    console.log("Usuario eliminado exitosamente:", req.user.userId)
+
+    return res.status(200).json({
+      success: true,
+      message: 'Perfil eliminado exitosamente'
+    })
+  } catch (error) {
+    console.error("Error al eliminar perfil:", error)
+    return res.status(500).json({
+      success: false,
+      error: 'Error en el servidor al eliminar perfil'
     })
   }
 }
