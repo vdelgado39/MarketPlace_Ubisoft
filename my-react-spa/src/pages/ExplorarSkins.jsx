@@ -369,11 +369,14 @@ function ExplorarSkins() {
                         onClick={() => abrirModal(skin)}
                       >
                         <div className="skin-image-compact">
-                          {skin.archivo ? (
+                          {skin.imagen || skin.urlArchivo ? (
                             <img 
-                              src={skin.archivo instanceof File ? URL.createObjectURL(skin.archivo) : skin.imagen_url} 
+                              src={skin.imagen || skin.urlArchivo || 'https://via.placeholder.com/150?text=Sin+Imagen'} 
                               alt={skin.nombre}
                               className="skin-thumbnail-compact"
+                              onError={(e) => {
+                                e.target.src = 'https://via.placeholder.com/150?text=Imagen+No+Disponible'
+                              }}
                             />
                           ) : (
                             <span className="skin-placeholder-compact">🎭</span>
