@@ -72,6 +72,8 @@ export const getSkinById = async (req, res) => {
   try {
     const { id } = req.params
 
+    console.log('🔍 Buscando skin con ID:', id)
+
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ success: false, error: 'ID de skin inválido' })
     }
@@ -79,15 +81,23 @@ export const getSkinById = async (req, res) => {
     const skin = await Skin.findById(id).populate('usuarioCreador', 'username nombre avatar')
 
     if (!skin) {
+      console.log('❌ Skin no encontrada:', id)
       return res.status(404).json({ success: false, error: 'Skin no encontrada' })
     }
+
+    console.log('✅ Skin encontrada:', skin.nombre)
+
+    // ✅ IMPORTANTE: Evitar caché
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate')
+    res.setHeader('Pragma', 'no-cache')
+    res.setHeader('Expires', '0')
 
     return res.status(200).json({
       success: true,
       data: skin
     })
   } catch (error) {
-    console.error('Error al obtener skin:', error)
+    console.error('❌ Error al obtener skin:', error)
     return res.status(500).json({ success: false, error: 'Error en el servidor' })
   }
 }
@@ -99,25 +109,66 @@ export const uploadSkin = async (req, res) => {
     const usuarioCreador = req.user.userId
 
     console.log('Subiendo skin:', { nombre, usuarioCreador })
+    console.log('Datos recibidos:', req.body)
 
     // Validaciones
-    if (!nombre || !precio || !urlArchivo) {
+    if (!nombre || nombre.trim() === '') {
       return res.status(400).json({ 
         success: false, 
-        error: 'Nombre, precio y URL del archivo son obligatorios' 
+        error: 'El nombre es obligatorio' 
       })
+    }
+
+    if (precio === undefined || precio === null || precio === '') {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'El precio es obligatorio' 
+      })
+    }
+
+    // Validar y limpiar urlArchivo
+    let archivoUrl = ''
+    if (typeof urlArchivo === 'string') {
+      archivoUrl = urlArchivo.trim()
+    } else if (typeof urlArchivo === 'object' && urlArchivo !== null) {
+      // Si es un objeto, intentar extraer una URL
+      archivoUrl = urlArchivo.url || urlArchivo.path || ''
+    }
+
+    if (!archivoUrl || archivoUrl === '') {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'La URL del archivo es obligatoria' 
+      })
+    }
+
+    // Normalizar categoría (capitalizar primera letra)
+    let categoriaNormalizada = categoria || 'Otro'
+    if (typeof categoriaNormalizada === 'string') {
+      categoriaNormalizada = categoriaNormalizada.charAt(0).toUpperCase() + 
+                            categoriaNormalizada.slice(1).toLowerCase()
+      // Convertir plural a singular si es necesario
+      if (categoriaNormalizada.endsWith('s')) {
+        categoriaNormalizada = categoriaNormalizada.slice(0, -1)
+      }
+    }
+
+    // Validar que la categoría sea válida
+    const categoriasValidas = ['Personaje', 'Arma', 'Vehiculo', 'Objeto', 'Otro']
+    if (!categoriasValidas.includes(categoriaNormalizada)) {
+      categoriaNormalizada = 'Otro'
     }
 
     // Crear nueva skin
     const newSkin = new Skin({
-      nombre,
-      descripcion,
-      precio,
-      imagen,
-      categoria,
+      nombre: nombre.trim(),
+      descripcion: descripcion ? descripcion.trim() : '',
+      precio: parseFloat(precio),
+      imagen: imagen || '',
+      categoria: categoriaNormalizada,
       usuarioCreador,
-      urlArchivo,
-      tags: tags || []
+      urlArchivo: archivoUrl,
+      tags: Array.isArray(tags) ? tags : []
     })
 
     await newSkin.save()
@@ -139,7 +190,11 @@ export const uploadSkin = async (req, res) => {
     })
   } catch (error) {
     console.error('Error al subir skin:', error)
-    return res.status(500).json({ success: false, error: 'Error en el servidor' })
+    return res.status(500).json({ 
+      success: false, 
+      error: 'Error en el servidor',
+      details: error.message 
+    })
   }
 }
 

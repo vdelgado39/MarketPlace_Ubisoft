@@ -13,11 +13,24 @@ function SkinModal({ skinId, onClose, onComprar }) {
   const [cargandoComentarios, setCargandoComentarios] = useState(false)
   const [enviandoComentario, setEnviandoComentario] = useState(false)
 
-  // Hook para cargar detalles de la skin desde la API
+  // ✅ VALIDAR skinId al inicio
+  useEffect(() => {
+    console.log('🔍 SkinModal recibió skinId:', skinId)
+    console.log('🔍 Tipo de skinId:', typeof skinId)
+    console.log('🔍 ¿Es válido?:', Boolean(skinId))
+  }, [skinId])
+
+  // ✅ CORREGIDO: Hook para cargar detalles de la skin desde la API
   const { data: skinData, loading, error, execute: cargarSkinDetalle } = useApi(
     async (id) => {
+      console.log('🚀 useApi ejecutando getSkinById con ID:', id)
       const { default: skinService } = await import('../../services/skinService')
-      return await skinService.getSkinById(id)
+      const result = await skinService.getSkinById(id)
+      console.log('📥 Respuesta de getSkinById:', result)
+      
+      // ✅ IMPORTANTE: Retornar el objeto completo {success, data}
+      // El hook useApi espera este formato para extraer result.data
+      return result
     },
     [skinId]
   )
@@ -25,6 +38,7 @@ function SkinModal({ skinId, onClose, onComprar }) {
   // Cargar detalles y comentarios al montar el componente
   useEffect(() => {
     if (skinId) {
+      console.log('🔍 Cargando skin con ID:', skinId)
       cargarSkinDetalle(skinId)
       cargarComentarios()
     }
@@ -32,8 +46,15 @@ function SkinModal({ skinId, onClose, onComprar }) {
 
   // Actualizar estado local cuando llegan los datos
   useEffect(() => {
+    console.log('🔄 useEffect disparado. skinData:', skinData)
+    console.log('🔄 Tipo de skinData:', typeof skinData)
+    console.log('🔄 ¿skinData existe?:', !!skinData)
+    
     if (skinData) {
+      console.log('✅ Actualizando skinDetalle con:', skinData)
       setSkinDetalle(skinData)
+    } else {
+      console.log('⚠️ skinData es null/undefined')
     }
   }, [skinData])
 
@@ -127,16 +148,19 @@ function SkinModal({ skinId, onClose, onComprar }) {
     if (skinDetalle && onComprar) {
       try {
         const { default: skinService } = await import('../../services/skinService')
-        const result = await skinService.purchaseSkin(skinDetalle.id)
+        // ✅ USAR EL ID CORRECTO (_id en lugar de id)
+        const skinIdToUse = skinDetalle._id || skinDetalle.id
+        const result = await skinService.purchaseSkin(skinIdToUse)
         
         if (result.success) {
-          alert(`🎉 ¡Has comprado "${skinDetalle.nombre}" por ${skinDetalle.precio}!`)
+          alert(`🎉 ¡Has comprado "${skinDetalle.nombre}" por $${skinDetalle.precio}!`)
           onComprar(skinDetalle)
         } else {
           alert(`❌ Error al comprar: ${result.error}`)
         }
       } catch (error) {
         alert('❌ Error al procesar la compra')
+        console.error(error)
       }
     }
   }
@@ -176,19 +200,18 @@ function SkinModal({ skinId, onClose, onComprar }) {
     return juego || { nombre: 'Juego desconocido', imagen: '🎮' }
   }
 
-  // Obtener label de categoría
+  // ✅ ACTUALIZADO: Obtener label de categoría con las nuevas categorías
   const getCategoriaLabel = (categoria) => {
     const categorias = [
-      { value: 'armas', label: '⚔️ Armas' },
-      { value: 'personajes', label: '🧙‍♂️ Personajes' },
-      { value: 'vehiculos', label: '🚗 Vehículos' },
-      { value: 'accesorios', label: '👑 Accesorios' },
-      { value: 'efectos', label: '✨ Efectos Especiales' },
-      { value: 'otros', label: '📦 Otros' }
+      { value: 'Arma', label: '⚔️ Arma' },
+      { value: 'Personaje', label: '🧙‍♂️ Personaje' },
+      { value: 'Vehiculo', label: '🚗 Vehículo' },
+      { value: 'Objeto', label: '👑 Objeto' },
+      { value: 'Otro', label: '📦 Otro' }
     ]
 
     const cat = categorias.find(c => c.value === categoria)
-    return cat ? cat.label : '📦 Otros'
+    return cat ? cat.label : '📦 Otro'
   }
 
   // Formatear fecha
@@ -243,13 +266,15 @@ function SkinModal({ skinId, onClose, onComprar }) {
                 {/* Imagen principal */}
                 <div className="skin-image-section">
                   <div className="skin-image-container">
-                    {skinDetalle.archivo ? (
+                    {/* ✅ ACTUALIZADO: Manejo de imagen mejorado */}
+                    {skinDetalle.imagen || skinDetalle.urlArchivo ? (
                       <img 
-                        src={skinDetalle.archivo instanceof File ? 
-                             URL.createObjectURL(skinDetalle.archivo) : 
-                             skinDetalle.imagen_url} 
+                        src={skinDetalle.imagen || skinDetalle.urlArchivo || 'https://via.placeholder.com/400x300?text=Sin+Imagen'} 
                         alt={skinDetalle.nombre}
                         className="skin-image-large"
+                        onError={(e) => {
+                          e.target.src = 'https://via.placeholder.com/400x300?text=Imagen+No+Disponible'
+                        }}
                       />
                     ) : (
                       <div className="skin-placeholder-large">
@@ -265,11 +290,13 @@ function SkinModal({ skinId, onClose, onComprar }) {
                   {/* Nombre principal */}
                   <h3 className="skin-name">{skinDetalle.nombre}</h3>
 
-                  {/* Información del juego */}
-                  <div className="skin-game-info-modal">
-                    <span className="game-icon-modal">{getJuegoInfo(skinDetalle).imagen}</span>
-                    <span className="game-name-modal">{getJuegoInfo(skinDetalle).nombre}</span>
-                  </div>
+                  {/* Información del juego (si existe) */}
+                  {skinDetalle.juego && (
+                    <div className="skin-game-info-modal">
+                      <span className="game-icon-modal">{getJuegoInfo(skinDetalle).imagen}</span>
+                      <span className="game-name-modal">{getJuegoInfo(skinDetalle).nombre}</span>
+                    </div>
+                  )}
 
                   {/* Categoría */}
                   <div className="skin-category-info">
@@ -280,14 +307,18 @@ function SkinModal({ skinId, onClose, onComprar }) {
                   {/* Descripción */}
                   <div className="skin-description-section">
                     <h4>📝 Descripción</h4>
-                    <p className="skin-description-text">{skinDetalle.descripcion}</p>
+                    <p className="skin-description-text">
+                      {skinDetalle.descripcion || 'Sin descripción disponible'}
+                    </p>
                   </div>
 
                   {/* Precio */}
                   <div className="skin-price-section">
                     <div className="price-container">
                       <span className="price-label">Precio:</span>
-                      <span className="price-value">💰 ${skinDetalle.precio}</span>
+                      <span className="price-value">
+                        {skinDetalle.precio === 0 ? '🆓 GRATIS' : `💰 $${skinDetalle.precio}`}
+                      </span>
                     </div>
                   </div>
 
@@ -330,11 +361,19 @@ function SkinModal({ skinId, onClose, onComprar }) {
                       </div>
                     )}
 
-                    {skinDetalle.rating !== undefined && (
+                    {skinDetalle.descargas !== undefined && (
                       <div className="metadata-item">
-                        <span className="metadata-label">⭐ Rating:</span>
+                        <span className="metadata-label">📥 Descargas:</span>
+                        <span className="metadata-value">{skinDetalle.descargas || 0}</span>
+                      </div>
+                    )}
+
+                    {/* ✅ NUEVO: Mostrar creador */}
+                    {skinDetalle.usuarioCreador && (
+                      <div className="metadata-item">
+                        <span className="metadata-label">👤 Creador:</span>
                         <span className="metadata-value">
-                          {skinDetalle.rating ? `${skinDetalle.rating}/5` : 'Sin calificar'}
+                          {skinDetalle.usuarioCreador.username || skinDetalle.usuarioCreador.nombre || 'Anónimo'}
                         </span>
                       </div>
                     )}
@@ -437,6 +476,21 @@ function SkinModal({ skinId, onClose, onComprar }) {
           ) : (
             <div className="modal-no-data">
               <p>❓ No se encontraron detalles para esta skin</p>
+              <p style={{ fontSize: '0.9em', color: '#666', marginTop: '10px' }}>
+                ID buscado: {skinId || '(vacío)'}
+              </p>
+              <p style={{ fontSize: '0.9em', color: '#666', marginTop: '10px' }}>
+                Tipo: {typeof skinId}
+              </p>
+              {!skinId && (
+                <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#fff3cd', borderRadius: '8px' }}>
+                  <p style={{ color: '#856404', margin: 0 }}>
+                    ⚠️ <strong>Error:</strong> No se proporcionó un ID de skin válido.
+                    <br />
+                    Verifica que estás pasando correctamente el ID al abrir el modal.
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -451,14 +505,16 @@ function SkinModal({ skinId, onClose, onComprar }) {
               ❌ Cerrar
             </button>
             <button 
-              className={`buy-button-modal ${!isAuthenticated ? 'disabled' : ''}`}
+              className={`buy-button-modal ${!isAuthenticated || skinDetalle.precio === 0 ? 'disabled' : ''}`}
               onClick={handleComprar}
               disabled={!isAuthenticated}
               title={!isAuthenticated ? 'Inicia sesión para comprar' : `Comprar por $${skinDetalle.precio}`}
             >
-              {isAuthenticated 
-                ? `💳 Comprar por $${skinDetalle.precio}` 
-                : '🔒 Requiere Iniciar Sesión'}
+              {!isAuthenticated 
+                ? '🔒 Requiere Iniciar Sesión'
+                : skinDetalle.precio === 0
+                  ? '🆓 GRATIS - Descargar'
+                  : `💳 Comprar por $${skinDetalle.precio}`}
             </button>
           </div>
         )}

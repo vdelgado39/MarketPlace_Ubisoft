@@ -404,7 +404,7 @@ function ExplorarSkins() {
         {/* Modal de detalles de skin */}
         {modalAbierto && skinSeleccionada && (
           <SkinModal 
-            skinId={skinSeleccionada.id}
+            skinId={skinSeleccionada._id}
             onClose={cerrarModal}
             onComprar={comprarSkin}
             isAuthenticated={isAuthenticated}

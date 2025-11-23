@@ -19,6 +19,14 @@ const router = express.Router()
 router.get('/', getAllSkins)
 router.get('/:id', getSkinById)
 
+// Rutas de comentarios
+router.get('/:id/comments', (req, res) => {
+  res.status(200).json({ success: true, data: [] })
+})
+router.post('/:id/comments', protect, (req, res) => {
+  res.status(501).json({ success: false, error: 'Comentarios no implementados aún' })
+})
+
 // Rutas protegidas (requieren autenticación)
 router.post('/', protect, uploadSkin)
 router.post('/:id/buy', protect, buySkin)
