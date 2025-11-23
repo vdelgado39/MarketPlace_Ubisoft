@@ -27,23 +27,20 @@ function Profile() {
   useEffect(() => {
     if (user) {
       console.log('👤 Usuario en Profile:', user)
-      console.log('📊 Skins del usuario:', {
-        subidas: user.skinsSubidas,
-        compradas: user.skinsCompradas,
-        descargadas: user.skinsDescargadas
-      })
       
       setFormData({
         nombre: user.nombre || '',
-        avatar: user.avatar || '👤'
+        avatar: user.avatar || '👤',
+        username: user.username || '',
+        email: user.email || ''
       })
       
-      // Cargar las skins del usuario
+      // Cargar las skins del usuario desde el backend
       cargarSkinsDelUsuario()
     }
   }, [user])
 
-  // Cargar skins del usuario
+  // Cargar skins del usuario desde el backend
   const cargarSkinsDelUsuario = async () => {
     if (!user) return
     
@@ -52,32 +49,27 @@ function Profile() {
     try {
       const { default: skinService } = await import('../services/skinService')
       
-      // Cargar todas las skins
-      const allSkinsResult = await skinService.getAllSkins()
+      // Usar el endpoint getMySkins que retorna las skins del usuario
+      const result = await skinService.getMySkins()
       
-      if (allSkinsResult.success) {
-        const allSkins = allSkinsResult.data
+      console.log('📥 Resultado de getMySkins:', result)
+      
+      if (result.success) {
+        // El backend retorna {skinsSubidas, skinsCompradas, skinsDescargadas}
+        const { skinsSubidas, skinsCompradas, skinsDescargadas } = result.data
         
-        // Filtrar skins subidas
-        const subidas = allSkins.filter(skin => 
-          user.skinsSubidas?.includes(skin.id)
-        )
-        setSkinsSubidas(subidas)
+        console.log('✅ Skins cargadas:', {
+          subidas: skinsSubidas?.length || 0,
+          compradas: skinsCompradas?.length || 0,
+          descargadas: skinsDescargadas?.length || 0
+        })
         
-        // Filtrar skins compradas
-        const compradas = allSkins.filter(skin => 
-          user.skinsCompradas?.includes(skin.id)
-        )
-        setSkinsCompradas(compradas)
-        
-        // Filtrar skins descargadas
-        const descargadas = allSkins.filter(skin => 
-          user.skinsDescargadas?.includes(skin.id)
-        )
-        setSkinsDescargadas(descargadas)
+        setSkinsSubidas(skinsSubidas || [])
+        setSkinsCompradas(skinsCompradas || [])
+        setSkinsDescargadas(skinsDescargadas || [])
       }
     } catch (error) {
-      console.error('Error al cargar skins:', error)
+      console.error('❌ Error al cargar skins:', error)
     } finally {
       setLoadingSkins(false)
     }
@@ -113,6 +105,7 @@ function Profile() {
       if (result.success) {
         alert('✅ Perfil actualizado exitosamente')
         setEditMode(false)
+        await checkAuth()
       } else {
         alert(`❌ Error: ${result.error}`)
       }
@@ -127,7 +120,9 @@ function Profile() {
   const handleCancel = () => {
     setFormData({
       nombre: user.nombre || '',
-      avatar: user.avatar || '👤'
+      avatar: user.avatar || '👤',
+      username: user.username || '',
+      email: user.email || ''
     })
     setEditMode(false)
   }
@@ -173,7 +168,6 @@ function Profile() {
         alert('✅ Cuenta eliminada exitosamente. Serás redirigido al inicio.')
         handleCloseDeleteModal()
         
-        // Logout y redireccionar
         await logout()
         navigate('/login')
       } else {
@@ -197,29 +191,34 @@ function Profile() {
     }
   }
 
+  // Editar skin (navegar a gestionar skins con el ID)
+  const handleEditarSkin = (skinId) => {
+    navigate(`/gestionar-skins?edit=${skinId}`)
+  }
+
   // Descargar skin
-  const handleDescargarSkin = async (skinId, nombreSkin) => {
+  const handleDescargarSkin = async (skin) => {
     try {
+      const skinId = skin._id || skin.id
       const { default: skinService } = await import('../services/skinService')
       const result = await skinService.downloadSkin(skinId)
       
       if (result.success) {
-        alert(`✅ "${nombreSkin}" descargada exitosamente`)
+        alert(`✅ "${skin.nombre}" lista para descargar`)
         
-        // Recargar datos del usuario y skins
+        if (result.data.urlArchivo) {
+          window.open(result.data.urlArchivo, '_blank')
+        }
+        
         await checkAuth()
         await cargarSkinsDelUsuario()
       } else {
         alert(`❌ Error: ${result.error}`)
       }
     } catch (error) {
+      console.error('❌ Error al descargar skin:', error)
       alert('❌ Error al descargar skin')
     }
-  }
-
-  // Ver detalles de skin (navegar a gestionar)
-  const handleVerDetalles = (skinId) => {
-    navigate('/gestionar-skins')
   }
 
   if (!user) {
@@ -287,7 +286,6 @@ function Profile() {
           <div className="profile-edit-section">
             <h2>✏️ Editar Información</h2>
             
-            {/* Nombre */}
             <div className="profile-form-group">
               <label>Nombre Completo</label>
               <input
@@ -300,33 +298,6 @@ function Profile() {
               />
             </div>
 
-            {/* Username */}
-            <div className="profile-form-group">
-              <label>Nombre de Usuario</label>
-              <input
-                type="text"
-                name="username"
-                value={formData.username}
-                onChange={handleInputChange}
-                placeholder="Tu nombre de usuario"
-                disabled={isUpdating}
-              />
-            </div>
-
-            {/* Email */}
-            <div className="profile-form-group">
-              <label>Correo Electrónico</label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                placeholder="tu@email.com"
-                disabled={isUpdating}
-              />
-            </div>
-
-            {/* Selector de Avatar */}
             <div className="profile-form-group">
               <label>Selecciona tu Avatar</label>
               <div className="profile-avatar-selector">
@@ -344,31 +315,29 @@ function Profile() {
               </div>
             </div>
 
-            {/* Cambiar Contraseña */}
             <div className="profile-form-group">
-              <label>Contraseña Actual</label>
+              <label>Contraseña Actual (opcional)</label>
               <input
                 type="password"
                 name="passwordActual"
                 value={formData.passwordActual || ''}
                 onChange={handleInputChange}
-                placeholder="Introduce tu contraseña actual"
+                placeholder="Solo si quieres cambiar contraseña"
                 disabled={isUpdating}
               />
             </div>
 
             <div className="profile-form-group">
-              <label>Nueva Contraseña</label>
+              <label>Nueva Contraseña (opcional)</label>
               <input
                 type="password"
                 name="nuevoPassword"
                 value={formData.nuevoPassword || ''}
                 onChange={handleInputChange}
-                placeholder="Introduce tu nueva contraseña"
+                placeholder="Nueva contraseña"
                 disabled={isUpdating}
               />
             </div>
-
           </div>
         )}
 
@@ -379,21 +348,21 @@ function Profile() {
             <div className="stat-card">
               <div className="stat-icon">📤</div>
               <div className="stat-info">
-                <h3>{user.skinsSubidas?.length || 0}</h3>
+                <h3>{skinsSubidas.length}</h3>
                 <p>Skins Subidas</p>
               </div>
             </div>
             <div className="stat-card">
               <div className="stat-icon">🛒</div>
               <div className="stat-info">
-                <h3>{user.skinsCompradas?.length || 0}</h3>
+                <h3>{skinsCompradas.length}</h3>
                 <p>Skins Compradas</p>
               </div>
             </div>
             <div className="stat-card">
               <div className="stat-icon">⬇️</div>
               <div className="stat-info">
-                <h3>{user.skinsDescargadas?.length || 0}</h3>
+                <h3>{skinsDescargadas.length}</h3>
                 <p>Skins Descargadas</p>
               </div>
             </div>
@@ -409,28 +378,59 @@ function Profile() {
 
         {/* Skins Subidas */}
         <div className="profile-section">
-          <h2>📤 Mis Skins Subidas ({skinsSubidas.length})</h2>
+          <div className="section-header-profile">
+            <h2>📤 Mis Skins Subidas</h2>
+            <span className="section-count">({skinsSubidas.length} skin{skinsSubidas.length !== 1 ? 's' : ''})</span>
+          </div>
+          
           {loadingSkins ? (
             <div className="loading-section">
+              <div className="loading-spinner">⏳</div>
               <p>Cargando skins...</p>
             </div>
           ) : skinsSubidas.length > 0 ? (
-            <div className="profile-skins-list">
-              {skinsSubidas.map((skin) => (
-                <div key={skin.id} className="profile-skin-item">
-                  <span className="skin-number">#{skin.id}</span>
-                  <div className="skin-item-details">
-                    <span className="skin-name-profile">{skin.nombre}</span>
-                    <span className="skin-price-profile">💰 ${skin.precio}</span>
-                  </div>
-                  <button 
-                    className="view-skin-button"
-                    onClick={() => handleVerDetalles(skin.id)}
+            <div className="skins-scroll-container">
+              <div className="skins-horizontal-grid">
+                {skinsSubidas.map(skin => (
+                  <div 
+                    key={skin._id || skin.id} 
+                    className="skin-card-compact"
                   >
-                    👁️ Ver
-                  </button>
-                </div>
-              ))}
+                    <div className="skin-image-compact">
+                      {skin.imagen || skin.urlArchivo ? (
+                        <img 
+                          src={skin.imagen || skin.urlArchivo || 'https://via.placeholder.com/150?text=Sin+Imagen'} 
+                          alt={skin.nombre}
+                          className="skin-thumbnail-compact"
+                          onError={(e) => {
+                            e.target.src = 'https://via.placeholder.com/150?text=Imagen+No+Disponible'
+                          }}
+                        />
+                      ) : (
+                        <span className="skin-placeholder-compact">🎭</span>
+                      )}
+                    </div>
+                    
+                    <div className="skin-overlay">
+                      <div className="skin-info-compact">
+                        <h4>{skin.nombre}</h4>
+                        <p className="skin-price-compact">
+                          {skin.precio === 0 ? '🆓 GRATIS' : `💰 $${skin.precio}`}
+                        </p>
+                        <p className="skin-stats-compact">
+                          📥 {skin.descargas || 0} | 🛒 {skin.compras || 0}
+                        </p>
+                        <button 
+                          className="edit-skin-button-compact"
+                          onClick={() => handleEditarSkin(skin._id || skin.id)}
+                        >
+                          ✏️ Editar
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           ) : (
             <div className="empty-state">
@@ -447,39 +447,61 @@ function Profile() {
 
         {/* Skins Compradas */}
         <div className="profile-section">
-          <h2>🛒 Mis Skins Compradas ({skinsCompradas.length})</h2>
+          <div className="section-header-profile">
+            <h2>🛒 Mis Skins Compradas</h2>
+            <span className="section-count">({skinsCompradas.length} skin{skinsCompradas.length !== 1 ? 's' : ''})</span>
+          </div>
+          
           {loadingSkins ? (
             <div className="loading-section">
+              <div className="loading-spinner">⏳</div>
               <p>Cargando skins...</p>
             </div>
           ) : skinsCompradas.length > 0 ? (
-            <div className="profile-skins-list">
-              {skinsCompradas.map((skin) => (
-                <div key={skin.id} className="profile-skin-item">
-                  <span className="skin-number">#{skin.id}</span>
-                  <div className="skin-item-details">
-                    <span className="skin-name-profile">{skin.nombre}</span>
-                    <span className="skin-price-profile">💰 ${skin.precio}</span>
+            <div className="skins-scroll-container">
+              <div className="skins-horizontal-grid">
+                {skinsCompradas.map(skin => (
+                  <div 
+                    key={skin._id || skin.id} 
+                    className="skin-card-compact"
+                  >
+                    <div className="skin-image-compact">
+                      {skin.imagen || skin.urlArchivo ? (
+                        <img 
+                          src={skin.imagen || skin.urlArchivo || 'https://via.placeholder.com/150?text=Sin+Imagen'} 
+                          alt={skin.nombre}
+                          className="skin-thumbnail-compact"
+                          onError={(e) => {
+                            e.target.src = 'https://via.placeholder.com/150?text=Imagen+No+Disponible'
+                          }}
+                        />
+                      ) : (
+                        <span className="skin-placeholder-compact">🎭</span>
+                      )}
+                    </div>
+                    
+                    <div className="skin-overlay">
+                      <div className="skin-info-compact">
+                        <h4>{skin.nombre}</h4>
+                        <p className="skin-price-compact">💰 ${skin.precio}</p>
+                        <button 
+                          className="download-skin-button-compact"
+                          onClick={() => handleDescargarSkin(skin)}
+                        >
+                          📥 Descargar
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  {!user.skinsDescargadas?.includes(skin.id) ? (
-                    <button 
-                      className="download-skin-button"
-                      onClick={() => handleDescargarSkin(skin.id, skin.nombre)}
-                    >
-                      ⬇️ Descargar
-                    </button>
-                  ) : (
-                    <span className="skin-badge">✅ Descargada</span>
-                  )}
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           ) : (
             <div className="empty-state">
               <p>No has comprado ninguna skin aún</p>
               <button 
                 className="empty-action-button"
-                onClick={() => navigate('/explorar-skins')}
+                onClick={() => navigate('/explorar')}
               >
                 🔍 Explorar Marketplace
               </button>
@@ -489,23 +511,57 @@ function Profile() {
 
         {/* Skins Descargadas */}
         <div className="profile-section">
-          <h2>⬇️ Mis Skins Descargadas ({skinsDescargadas.length})</h2>
+          <div className="section-header-profile">
+            <h2>⬇️ Mis Skins Descargadas</h2>
+            <span className="section-count">({skinsDescargadas.length} skin{skinsDescargadas.length !== 1 ? 's' : ''})</span>
+          </div>
+          
           {loadingSkins ? (
             <div className="loading-section">
+              <div className="loading-spinner">⏳</div>
               <p>Cargando skins...</p>
             </div>
           ) : skinsDescargadas.length > 0 ? (
-            <div className="profile-skins-list">
-              {skinsDescargadas.map((skin) => (
-                <div key={skin.id} className="profile-skin-item">
-                  <span className="skin-number">#{skin.id}</span>
-                  <div className="skin-item-details">
-                    <span className="skin-name-profile">{skin.nombre}</span>
-                    <span className="skin-price-profile">💰 ${skin.precio}</span>
+            <div className="skins-scroll-container">
+              <div className="skins-horizontal-grid">
+                {skinsDescargadas.map(skin => (
+                  <div 
+                    key={skin._id || skin.id} 
+                    className="skin-card-compact"
+                  >
+                    <div className="skin-image-compact">
+                      {skin.imagen || skin.urlArchivo ? (
+                        <img 
+                          src={skin.imagen || skin.urlArchivo || 'https://via.placeholder.com/150?text=Sin+Imagen'} 
+                          alt={skin.nombre}
+                          className="skin-thumbnail-compact"
+                          onError={(e) => {
+                            e.target.src = 'https://via.placeholder.com/150?text=Imagen+No+Disponible'
+                          }}
+                        />
+                      ) : (
+                        <span className="skin-placeholder-compact">🎭</span>
+                      )}
+                    </div>
+                    
+                    <div className="skin-overlay">
+                      <div className="skin-info-compact">
+                        <h4>{skin.nombre}</h4>
+                        <p className="skin-price-compact">
+                          {skin.precio === 0 ? '🆓 GRATIS' : `💰 $${skin.precio}`}
+                        </p>
+                        <div className="skin-badge-compact">✅ Descargada</div>
+                        <button 
+                          className="download-skin-button-compact"
+                          onClick={() => handleDescargarSkin(skin)}
+                        >
+                          📥 Descargar
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  <span className="skin-badge">✅ Descargada</span>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           ) : (
             <div className="empty-state">
@@ -530,8 +586,8 @@ function Profile() {
                 <p>Si eliminas tu cuenta, perderás permanentemente:</p>
                 <ul>
                   <li>🗂️ Tu perfil y estadísticas</li>
-                  <li>📤 Todas tus skins subidas ({user.skinsSubidas?.length || 0})</li>
-                  <li>🛒 Tus skins compradas ({user.skinsCompradas?.length || 0})</li>
+                  <li>📤 Todas tus skins subidas ({skinsSubidas.length})</li>
+                  <li>🛒 Tus skins compradas ({skinsCompradas.length})</li>
                   <li>💰 Tu saldo actual: ${user.wallet?.toFixed(2) || '0.00'}</li>
                 </ul>
               </div>
