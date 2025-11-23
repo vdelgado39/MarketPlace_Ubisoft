@@ -1,3 +1,5 @@
+// explorarSkins.jsx
+
 import { useState, useEffect } from 'react'
 import { useSkins } from '../hooks/useApi'
 import { useAuth } from '../context/AuthContext'
@@ -6,7 +8,7 @@ import SkinModal from '../components/common/SkinModal'
 import './Pages.css'
 
 function ExplorarSkins() {
-  const { isAuthenticated, user } = useAuth() // Verificar si está autenticado
+  const { isAuthenticated, user } = useAuth()
   const navigate = useNavigate()
   
   // Estados para filtros
@@ -23,7 +25,7 @@ function ExplorarSkins() {
   // Hook personalizado para cargar skins con filtros
   const { skins, loading, error, cargarSkins } = useSkins(filtros, true)
 
-  // Filtrar skins para excluir las del usuario actual (solo si está autenticado)
+  // ✅ CORREGIDO: Filtrar skins para excluir las del usuario actual
   const skinsDeOtrosUsuarios = skins.filter(skin => {
     // Si no está autenticado, mostrar todas las skins
     if (!isAuthenticated) {
@@ -31,12 +33,26 @@ function ExplorarSkins() {
     }
     
     // Si está autenticado, excluir sus propias skins
-    const userId = user?.id || localStorage.getItem('user_id')
+    const userId = user?.id || user?._id || localStorage.getItem('user_id')
     
-    if (userId && skin.creadorId) {
-      return skin.creadorId !== parseInt(userId)
+    console.log('🔍 Verificando skin:', skin.nombre)
+    console.log('👤 Usuario actual ID:', userId)
+    console.log('👤 Creador de la skin:', skin.usuarioCreador)
+    
+    // ✅ Comparar con usuarioCreador._id del backend
+    if (userId && skin.usuarioCreador) {
+      // El backend puede retornar usuarioCreador como objeto o como string
+      const creadorId = typeof skin.usuarioCreador === 'object' 
+        ? skin.usuarioCreador._id 
+        : skin.usuarioCreador
+      
+      console.log('🆔 Comparando:', userId, '!==', creadorId, '→', creadorId !== userId)
+      
+      // Excluir si es el mismo usuario (retornar false = no mostrar)
+      return creadorId !== userId
     }
     
+    // Si no hay usuarioCreador, mostrar la skin
     return true
   })
 
@@ -50,14 +66,13 @@ function ExplorarSkins() {
     { id: 'the-division', nombre: 'The Division', imagen: '🌆' }
   ]
 
-  // Lista de categorías disponibles
+  // ✅ Lista de categorías actualizadas para coincidir con el backend
   const categorias = [
-    { value: 'armas', label: '⚔️ Armas' },
-    { value: 'personajes', label: '🧙‍♂️ Personajes' },
-    { value: 'vehiculos', label: '🚗 Vehículos' },
-    { value: 'accesorios', label: '👑 Accesorios' },
-    { value: 'efectos', label: '✨ Efectos Especiales' },
-    { value: 'otros', label: '📦 Otros' }
+    { value: 'Arma', label: '⚔️ Arma' },
+    { value: 'Personaje', label: '🧙‍♂️ Personaje' },
+    { value: 'Vehiculo', label: '🚗 Vehículo' },
+    { value: 'Objeto', label: '👑 Objeto' },
+    { value: 'Otro', label: '📦 Otro' }
   ]
 
   // Función para agrupar skins por juego y categoría
@@ -84,7 +99,7 @@ function ExplorarSkins() {
       // Si HAY filtro de categoría, agrupar por juego Y categoría
       skins.forEach(skin => {
         const juegoId = skin.juego?.id || skin.juegoId || 'unknown'
-        const categoria = skin.categoria || 'otros'
+        const categoria = skin.categoria || 'Otro'
         
         const key = `${juegoId}-${categoria}`
         
@@ -132,6 +147,7 @@ function ExplorarSkins() {
 
   // Abrir modal con detalles de skin
   const abrirModal = (skin) => {
+    console.log('🎯 Abriendo modal para skin:', skin.nombre)
     setSkinSeleccionada(skin)
     setModalAbierto(true)
   }
@@ -142,7 +158,7 @@ function ExplorarSkins() {
     setSkinSeleccionada(null)
   }
 
-  // Manejar intento de compra (requiere autenticación)
+  // ✅ Manejar intento de compra con integración al backend
   const comprarSkin = async (skin) => {
     // Si no está autenticado, redirigir al login
     if (!isAuthenticated) {
@@ -153,11 +169,21 @@ function ExplorarSkins() {
     }
 
     try {
-      // Aquí iría la llamada a la API de compra
-      alert(`🎉 ¡Has comprado "${skin.nombre}" por $${skin.precio}!`)
-      cerrarModal()
+      const { default: skinService } = await import('../services/skinService')
+      const skinId = skin._id || skin.id
+      const result = await skinService.purchaseSkin(skinId)
+      
+      if (result.success) {
+        alert(`🎉 ¡Has comprado "${skin.nombre}" por $${skin.precio}!`)
+        cerrarModal()
+        // Recargar skins para actualizar la lista
+        cargarSkins(filtros)
+      } else {
+        alert(`❌ Error: ${result.error}`)
+      }
     } catch (error) {
       alert('❌ Error al comprar la skin')
+      console.error(error)
     }
   }
 
@@ -176,7 +202,7 @@ function ExplorarSkins() {
   // Obtener label de categoría
   const getCategoriaLabel = (categoria) => {
     const cat = categorias.find(c => c.value === categoria)
-    return cat ? cat.label : '📦 Otros'
+    return cat ? cat.label : '📦 Otro'
   }
 
   // Obtener skins agrupadas (usando las skins filtradas)
@@ -364,7 +390,7 @@ function ExplorarSkins() {
                   <div className="skins-horizontal-grid">
                     {grupo.skins.map(skin => (
                       <div 
-                        key={skin.id} 
+                        key={skin._id || skin.id} 
                         className="skin-card-compact"
                         onClick={() => abrirModal(skin)}
                       >
@@ -387,7 +413,9 @@ function ExplorarSkins() {
                         <div className="skin-overlay">
                           <div className="skin-info-compact">
                             <h4>{skin.nombre}</h4>
-                            <p className="skin-price-compact">💰 ${skin.precio}</p>
+                            <p className="skin-price-compact">
+                              {skin.precio === 0 ? '🆓 GRATIS' : `💰 $${skin.precio}`}
+                            </p>
                             <p className="click-hint">👆 Click para ver detalles</p>
                           </div>
                         </div>
@@ -407,7 +435,7 @@ function ExplorarSkins() {
         {/* Modal de detalles de skin */}
         {modalAbierto && skinSeleccionada && (
           <SkinModal 
-            skinId={skinSeleccionada._id}
+            skinId={skinSeleccionada._id || skinSeleccionada.id}
             onClose={cerrarModal}
             onComprar={comprarSkin}
             isAuthenticated={isAuthenticated}
