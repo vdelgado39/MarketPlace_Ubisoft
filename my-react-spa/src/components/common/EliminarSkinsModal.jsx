@@ -1,3 +1,5 @@
+// EliminarSkinsModal.jsx
+
 import { useState } from 'react'
 import './EliminarSkinsModal.css'
 
@@ -5,7 +7,7 @@ function EliminarSkinsModal({ skins, onClose, onEliminar }) {
   const [skinsSeleccionadas, setSkinsSeleccionadas] = useState([])
   const [eliminando, setEliminando] = useState(false)
 
-  // Manejar selección individual
+  // ✅ Manejar selección individual usando _id de MongoDB
   const handleCheckboxChange = (skinId) => {
     setSkinsSeleccionadas(prev => {
       if (prev.includes(skinId)) {
@@ -18,14 +20,14 @@ function EliminarSkinsModal({ skins, onClose, onEliminar }) {
     })
   }
 
-  // Seleccionar todas
+  // ✅ Seleccionar todas usando _id de MongoDB
   const seleccionarTodas = () => {
     if (skinsSeleccionadas.length === skins.length) {
       // Si todas están seleccionadas, deseleccionar todas
       setSkinsSeleccionadas([])
     } else {
-      // Seleccionar todas
-      setSkinsSeleccionadas(skins.map(skin => skin.id))
+      // Seleccionar todas usando _id de MongoDB
+      setSkinsSeleccionadas(skins.map(skin => skin._id || skin.id))
     }
   }
 
@@ -45,6 +47,8 @@ function EliminarSkinsModal({ skins, onClose, onEliminar }) {
     setEliminando(true)
 
     try {
+      console.log('🗑️ Eliminando skins:', skinsSeleccionadas)
+      
       // Llamar función de eliminación pasada por props
       await onEliminar(skinsSeleccionadas)
       
@@ -113,41 +117,52 @@ function EliminarSkinsModal({ skins, onClose, onEliminar }) {
             </label>
           </div>
 
-          {/* Lista de skins */}
+          {/* ✅ Lista de skins usando _id de MongoDB */}
           <div className="skins-list">
             {skins.length === 0 ? (
               <div className="no-skins-message">
                 <p>No hay skins para eliminar</p>
               </div>
             ) : (
-              skins.map(skin => (
-                <div 
-                  key={skin.id} 
-                  className={`skin-item ${skinsSeleccionadas.includes(skin.id) ? 'selected' : ''}`}
-                >
-                  <label className="checkbox-label">
-                    <input
-                      type="checkbox"
-                      checked={skinsSeleccionadas.includes(skin.id)}
-                      onChange={() => handleCheckboxChange(skin.id)}
-                      className="checkbox-input"
-                      disabled={eliminando}
-                    />
-                    <div className="skin-item-info">
-                      <div className="skin-item-header">
-                        <span className="skin-item-icon">
-                          {skin.juego?.imagen || '🎮'}
-                        </span>
-                        <span className="skin-item-name">{skin.nombre}</span>
+              skins.map(skin => {
+                const skinId = skin._id || skin.id
+                return (
+                  <div 
+                    key={skinId} 
+                    className={`skin-item ${skinsSeleccionadas.includes(skinId) ? 'selected' : ''}`}
+                  >
+                    <label className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={skinsSeleccionadas.includes(skinId)}
+                        onChange={() => handleCheckboxChange(skinId)}
+                        className="checkbox-input"
+                        disabled={eliminando}
+                      />
+                      <div className="skin-item-info">
+                        <div className="skin-item-header">
+                          <span className="skin-item-icon">
+                            {skin.juego?.imagen || 
+                             skin.juegoId === 'assassins-creed' ? '🥷' : 
+                             skin.juegoId === 'for-honor' ? '⚔️' : 
+                             skin.juegoId === 'rainbow-six' ? '🔫' : 
+                             skin.juegoId === 'far-cry' ? '🏔️' : 
+                             skin.juegoId === 'watch-dogs' ? '💻' : 
+                             skin.juegoId === 'the-division' ? '🌆' : '🎮'}
+                          </span>
+                          <span className="skin-item-name">{skin.nombre}</span>
+                        </div>
+                        <div className="skin-item-details">
+                          <span className="skin-item-price">
+                            {skin.precio === 0 ? '🆓 GRATIS' : `💰 $${skin.precio}`}
+                          </span>
+                          <span className="skin-item-category">📂 {skin.categoria}</span>
+                        </div>
                       </div>
-                      <div className="skin-item-details">
-                        <span className="skin-item-price">💰 ${skin.precio}</span>
-                        <span className="skin-item-category">📂 {skin.categoria}</span>
-                      </div>
-                    </div>
-                  </label>
-                </div>
-              ))
+                    </label>
+                  </div>
+                )
+              })
             )}
           </div>
         </div>

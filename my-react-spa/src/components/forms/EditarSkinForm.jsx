@@ -1,3 +1,5 @@
+// EditarSkinForm.jsx
+
 import { useState, useEffect } from 'react'
 import './FormStyles.css'
 
@@ -15,20 +17,22 @@ function EditarSkinForm({ skin, onClose, onSubmit }) {
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Categorías disponibles
+  // Categorías que coinciden con el backend
   const categorias = [
     { value: '', label: 'Selecciona una categoría' },
-    { value: 'armas', label: '⚔️ Armas' },
-    { value: 'personajes', label: '🧙‍♂️ Personajes' },
-    { value: 'vehiculos', label: '🚗 Vehículos' },
-    { value: 'accesorios', label: '👑 Accesorios' },
-    { value: 'efectos', label: '✨ Efectos Especiales' },
-    { value: 'otros', label: '📦 Otros' }
+    { value: 'Arma', label: '⚔️ Arma' },
+    { value: 'Personaje', label: '🧙‍♂️ Personaje' },
+    { value: 'Vehiculo', label: '🚗 Vehículo' },
+    { value: 'Objeto', label: '👑 Objeto' },
+    { value: 'Otro', label: '📦 Otro' }
   ]
 
   // Cargar datos de la skin al montar el componente
   useEffect(() => {
     if (skin) {
+      console.log('📝 Skin a editar:', skin)
+      console.log('🆔 ID de la skin:', skin._id || skin.id)
+      
       setFormData({
         nombre: skin.nombre || '',
         descripcion: skin.descripcion || '',
@@ -37,8 +41,10 @@ function EditarSkinForm({ skin, onClose, onSubmit }) {
         archivo: null // No cargamos el archivo existente
       })
 
-      // Mostrar imagen existente
-      if (skin.archivo instanceof File) {
+      // Mostrar imagen existente de MongoDB
+      if (skin.imagen || skin.urlArchivo) {
+        setPreviewImage(skin.imagen || skin.urlArchivo)
+      } else if (skin.archivo instanceof File) {
         setPreviewImage(URL.createObjectURL(skin.archivo))
       } else if (skin.imagen_url) {
         setPreviewImage(skin.imagen_url)
@@ -125,10 +131,10 @@ function EditarSkinForm({ skin, onClose, onSubmit }) {
       newErrors.descripcion = 'La descripción es requerida'
     }
 
-    if (!formData.precio) {
+    if (formData.precio === '') {
       newErrors.precio = 'El precio es requerido'
-    } else if (isNaN(formData.precio) || parseFloat(formData.precio) <= 0) {
-      newErrors.precio = 'El precio debe ser un número válido mayor a 0'
+    } else if (isNaN(formData.precio) || parseFloat(formData.precio) < 0) {
+      newErrors.precio = 'El precio debe ser un número válido mayor o igual a 0'
     }
 
     if (!formData.categoria) {
@@ -139,7 +145,7 @@ function EditarSkinForm({ skin, onClose, onSubmit }) {
     return Object.keys(newErrors).length === 0
   }
 
-  // Manejar envío del formulario
+  // Manejar envío del formulario usando _id de MongoDB
   const handleSubmit = async (e) => {
     e.preventDefault()
     
@@ -150,16 +156,26 @@ function EditarSkinForm({ skin, onClose, onSubmit }) {
     setIsSubmitting(true)
 
     try {
+      // Usar _id de MongoDB
+      const skinId = skin._id || skin.id
+      
+      console.log('💾 Guardando cambios para skin:', skinId)
+      console.log('📝 Datos a enviar:', formData)
+      
+      if (!skinId) {
+        throw new Error('ID de skin no válido')
+      }
+
       // Llamar función de callback con los datos actualizados
       if (onSubmit) {
-        await onSubmit(skin.id, formData)
+        await onSubmit(skinId, formData)
       }
       
-      // Cerrar formulario
-      onClose()
+      // Cerrar formulario (esto lo hace el componente padre ahora)
+      // onClose()
       
     } catch (error) {
-      console.error('Error al actualizar skin:', error)
+      console.error('❌ Error al actualizar skin:', error)
       setErrors({ submit: 'Error al actualizar la skin. Inténtalo de nuevo.' })
     } finally {
       setIsSubmitting(false)
@@ -179,8 +195,24 @@ function EditarSkinForm({ skin, onClose, onSubmit }) {
             <h2>✏️ Editar Skin</h2>
             {skin && (
               <div className="juego-seleccionado-header">
-                <span className="juego-icon">{skin.juego?.imagen || '🎮'}</span>
-                <span className="juego-nombre">{skin.juego?.nombre || 'Juego'}</span>
+                <span className="juego-icon">
+                  {skin.juego?.imagen || 
+                   skin.juegoId === 'assassins-creed' ? '🥷' : 
+                   skin.juegoId === 'for-honor' ? '⚔️' : 
+                   skin.juegoId === 'rainbow-six' ? '🔫' : 
+                   skin.juegoId === 'far-cry' ? '🏔️' : 
+                   skin.juegoId === 'watch-dogs' ? '💻' : 
+                   skin.juegoId === 'the-division' ? '🌆' : '🎮'}
+                </span>
+                <span className="juego-nombre">
+                  {skin.juego?.nombre || 
+                   skin.juegoId === 'assassins-creed' ? "Assassin's Creed" : 
+                   skin.juegoId === 'for-honor' ? 'For Honor' : 
+                   skin.juegoId === 'rainbow-six' ? 'Rainbow Six Siege' : 
+                   skin.juegoId === 'far-cry' ? 'Far Cry' : 
+                   skin.juegoId === 'watch-dogs' ? 'Watch Dogs' : 
+                   skin.juegoId === 'the-division' ? 'The Division' : 'Juego'}
+                </span>
               </div>
             )}
           </div>
@@ -270,6 +302,7 @@ function EditarSkinForm({ skin, onClose, onSubmit }) {
                   disabled={isSubmitting}
                 />
                 {errors.precio && <span className="error-message">{errors.precio}</span>}
+                <small className="field-hint">💡 Usa 0 para skins gratuitas</small>
               </div>
 
               {/* Categoría */}
@@ -301,6 +334,9 @@ function EditarSkinForm({ skin, onClose, onSubmit }) {
                     src={previewImage} 
                     alt="Preview" 
                     className="preview-image"
+                    onError={(e) => {
+                      e.target.src = 'https://via.placeholder.com/300?text=Imagen+No+Disponible'
+                    }}
                   />
                 ) : (
                   <div className="no-image-placeholder">
@@ -309,6 +345,12 @@ function EditarSkinForm({ skin, onClose, onSubmit }) {
                   </div>
                 )}
               </div>
+              {skin && (skin.imagen || skin.urlArchivo) && (
+                <div className="current-image-info">
+                  <p>✅ Imagen actual cargada</p>
+                  <small>Sube una nueva imagen solo si deseas cambiarla</small>
+                </div>
+              )}
             </div>
           </div>
 
