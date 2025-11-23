@@ -25,7 +25,7 @@ function ExplorarSkins() {
   // Hook personalizado para cargar skins con filtros
   const { skins, loading, error, cargarSkins } = useSkins(filtros, true)
 
-  // ✅ CORREGIDO: Filtrar skins para excluir las del usuario actual
+  // Filtrar skins para excluir las del usuario actual
   const skinsDeOtrosUsuarios = skins.filter(skin => {
     // Si no está autenticado, mostrar todas las skins
     if (!isAuthenticated) {
@@ -39,7 +39,7 @@ function ExplorarSkins() {
     console.log('👤 Usuario actual ID:', userId)
     console.log('👤 Creador de la skin:', skin.usuarioCreador)
     
-    // ✅ Comparar con usuarioCreador._id del backend
+    // Comparar con usuarioCreador._id del backend
     if (userId && skin.usuarioCreador) {
       // El backend puede retornar usuarioCreador como objeto o como string
       const creadorId = typeof skin.usuarioCreador === 'object' 
@@ -66,7 +66,7 @@ function ExplorarSkins() {
     { id: 'the-division', nombre: 'The Division', imagen: '🌆' }
   ]
 
-  // ✅ Lista de categorías actualizadas para coincidir con el backend
+  // Lista de categorías actualizadas para coincidir con el backend
   const categorias = [
     { value: 'Arma', label: '⚔️ Arma' },
     { value: 'Personaje', label: '🧙‍♂️ Personaje' },
@@ -158,7 +158,7 @@ function ExplorarSkins() {
     setSkinSeleccionada(null)
   }
 
-  // ✅ Manejar intento de compra con integración al backend
+  // Manejar intento de compra con integración al backend
   const comprarSkin = async (skin) => {
     // Si no está autenticado, redirigir al login
     if (!isAuthenticated) {
