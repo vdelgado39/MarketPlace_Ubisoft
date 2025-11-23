@@ -12,21 +12,21 @@ function AgregarSkinForm({ juegoSeleccionado, onClose, onSubmit }) {
     descripcion: '',
     precio: '',
     categoria: '',
-    archivo: null
+    archivo: null,
+    urlArchivo: '' // ✅ NUEVO: Campo para URL del archivo
   })
   
   const [previewImage, setPreviewImage] = useState(null)
   const [errors, setErrors] = useState({})
 
-  // Categorías disponibles
+  // ✅ ACTUALIZADO: Categorías que coinciden con el backend
   const categorias = [
     { value: '', label: 'Selecciona una categoría' },
-    { value: 'armas', label: '⚔️ Armas' },
-    { value: 'personajes', label: '🧙‍♂️ Personajes' },
-    { value: 'vehiculos', label: '🚗 Vehículos' },
-    { value: 'accesorios', label: '👑 Accesorios' },
-    { value: 'efectos', label: '✨ Efectos Especiales' },
-    { value: 'otros', label: '📦 Otros' }
+    { value: 'Arma', label: '⚔️ Armas' },
+    { value: 'Personaje', label: '🧙‍♂️ Personajes' },
+    { value: 'Vehiculo', label: '🚗 Vehículos' },
+    { value: 'Objeto', label: '👑 Accesorios' },
+    { value: 'Otro', label: '📦 Otros' }
   ]
 
   // Manejar cambios en inputs de texto
@@ -110,16 +110,17 @@ function AgregarSkinForm({ juegoSeleccionado, onClose, onSubmit }) {
 
     if (!formData.precio) {
       newErrors.precio = 'El precio es requerido'
-    } else if (isNaN(formData.precio) || parseFloat(formData.precio) <= 0) {
-      newErrors.precio = 'El precio debe ser un número válido mayor a 0'
+    } else if (isNaN(formData.precio) || parseFloat(formData.precio) < 0) {
+      newErrors.precio = 'El precio debe ser un número válido (0 o mayor)'
     }
 
     if (!formData.categoria) {
       newErrors.categoria = 'Selecciona una categoría'
     }
 
-    if (!formData.archivo) {
-      newErrors.archivo = 'Selecciona una imagen para la skin'
+    // ✅ ACTUALIZADO: Validar que tenga archivo O URL
+    if (!formData.archivo && !formData.urlArchivo.trim()) {
+      newErrors.archivo = 'Selecciona una imagen o proporciona una URL'
     }
 
     setErrors(newErrors)
@@ -137,11 +138,21 @@ function AgregarSkinForm({ juegoSeleccionado, onClose, onSubmit }) {
     // Limpiar errores previos
     clearError()
 
-    // Preparar datos para enviar a la API
+    // ✅ ACTUALIZADO: Preparar datos para enviar a la API
     const skinDataParaAPI = {
-      ...formData,
-      juego: juegoSeleccionado
+      nombre: formData.nombre.trim(),
+      descripcion: formData.descripcion.trim(),
+      precio: parseFloat(formData.precio),
+      categoria: formData.categoria,
+      juego: juegoSeleccionado,
+      // ✅ IMPORTANTE: Manejar el archivo correctamente
+      urlArchivo: formData.urlArchivo.trim() || `https://ejemplo.com/skins/${formData.nombre.replace(/\s+/g, '-').toLowerCase()}.zip`,
+      // Si tienes la imagen como base64, la puedes usar así:
+      imagen: previewImage || '',
+      tags: [formData.categoria.toLowerCase()]
     }
+
+    console.log('📤 Enviando datos:', skinDataParaAPI)
 
     // Llamar a la API
     const result = await crearSkin(skinDataParaAPI)
@@ -156,7 +167,7 @@ function AgregarSkinForm({ juegoSeleccionado, onClose, onSubmit }) {
       onClose()
       
       // Mostrar mensaje de éxito
-      alert(`🎉 ¡Skin "${formData.nombre}" creada exitosamente para ${juegoSeleccionado.nombre}!`)
+      alert(`🎉 ¡Skin "${formData.nombre}" creada exitosamente!`)
     }
     // El error se maneja automáticamente por el hook
   }
@@ -218,9 +229,66 @@ function AgregarSkinForm({ juegoSeleccionado, onClose, onSubmit }) {
                 {errors.descripcion && <span className="error-message">{errors.descripcion}</span>}
               </div>
 
-              {/* Archivo */}
+              {/* Precio */}
               <div className="field-group">
-                <label>Seleccionar Archivo *</label>
+                <label htmlFor="precio">Precio (USD) *</label>
+                <input
+                  type="number"
+                  id="precio"
+                  name="precio"
+                  value={formData.precio}
+                  onChange={handleInputChange}
+                  placeholder="0.00"
+                  step="0.01"
+                  min="0"
+                  className={errors.precio ? 'error' : ''}
+                  disabled={isSubmitting}
+                />
+                {errors.precio && <span className="error-message">{errors.precio}</span>}
+                <small className="field-hint">💡 Usa 0 para skins gratuitas</small>
+              </div>
+
+              {/* Categoría */}
+              <div className="field-group">
+                <label htmlFor="categoria">Categoría *</label>
+                <select
+                  id="categoria"
+                  name="categoria"
+                  value={formData.categoria}
+                  onChange={handleInputChange}
+                  className={`filter-select ${errors.categoria ? 'error' : ''}`}
+                  disabled={isSubmitting}
+                >
+                  {categorias.map(cat => (
+                    <option key={cat.value} value={cat.value}>
+                      {cat.label}
+                    </option>
+                  ))}
+                </select>
+                {errors.categoria && <span className="error-message">{errors.categoria}</span>}
+              </div>
+
+              {/* ✅ NUEVO: URL del archivo */}
+              <div className="field-group">
+                <label htmlFor="urlArchivo">URL del Archivo (Opcional)</label>
+                <input
+                  type="url"
+                  id="urlArchivo"
+                  name="urlArchivo"
+                  value={formData.urlArchivo}
+                  onChange={handleInputChange}
+                  placeholder="https://ejemplo.com/archivo.zip"
+                  className={errors.urlArchivo ? 'error' : ''}
+                  disabled={isSubmitting}
+                />
+                <small className="field-hint">
+                  💡 Si no proporcionas una URL, se generará una automáticamente
+                </small>
+              </div>
+
+              {/* Archivo de imagen (solo para preview) */}
+              <div className="field-group">
+                <label>Imagen de Vista Previa</label>
                 <div className="file-input-group">
                   <input
                     type="text"
@@ -247,44 +315,9 @@ function AgregarSkinForm({ juegoSeleccionado, onClose, onSubmit }) {
                   />
                 </div>
                 {errors.archivo && <span className="error-message">{errors.archivo}</span>}
-              </div>
-
-              {/* Precio */}
-              <div className="field-group">
-                <label htmlFor="precio">Precio (USD) *</label>
-                <input
-                  type="number"
-                  id="precio"
-                  name="precio"
-                  value={formData.precio}
-                  onChange={handleInputChange}
-                  placeholder="0.00"
-                  step="0.01"
-                  min="0"
-                  className={errors.precio ? 'error' : ''}
-                  disabled={isSubmitting}
-                />
-                {errors.precio && <span className="error-message">{errors.precio}</span>}
-              </div>
-
-              {/* Categoría */}
-              <div className="field-group">
-                <label htmlFor="categoria">Categoría *</label>
-                <select
-                  id="categoria"
-                  name="categoria"
-                  value={formData.categoria}
-                  onChange={handleInputChange}
-                  className={`filter-select ${errors.categoria ? 'error' : ''}`}
-                  disabled={isSubmitting}
-                >
-                  {categorias.map(cat => (
-                    <option key={cat.value} value={cat.value}>
-                      {cat.label}
-                    </option>
-                  ))}
-                </select>
-                {errors.categoria && <span className="error-message">{errors.categoria}</span>}
+                <small className="field-hint">
+                  💡 Solo para vista previa en el formulario
+                </small>
               </div>
             </div>
 
@@ -303,6 +336,17 @@ function AgregarSkinForm({ juegoSeleccionado, onClose, onSubmit }) {
                     <p>Vista previa de la imagen</p>
                   </div>
                 )}
+              </div>
+              
+              {/* ✅ NUEVO: Información de ayuda */}
+              <div className="info-box">
+                <h4>ℹ️ Información</h4>
+                <ul>
+                  <li>La imagen es solo para vista previa</li>
+                  <li>El archivo real debe estar en una URL</li>
+                  <li>Precio 0 = Skin gratuita</li>
+                  <li>Categorías: {categorias.filter(c => c.value).map(c => c.value).join(', ')}</li>
+                </ul>
               </div>
             </div>
           </div>
